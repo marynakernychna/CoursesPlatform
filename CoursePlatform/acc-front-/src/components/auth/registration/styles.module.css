@@ -1,0 +1,25 @@
+html, body{
+    margin: 0;
+    height: 100%;
+    overflow-x: hidden;
+    background-color: black !important;
+}
+
+.registrationBlock{
+    border-radius: 8px;
+    padding: 30px;
+    position: absolute;
+    background-image: url("https://i.pinimg.com/564x/8d/55/2e/8d552e1365613c122952d167dec04188.jpg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    width: 30%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.registrationBottomText{
+    margin-top: 13px;
+    color: white;
+    font-size: larger;
+}

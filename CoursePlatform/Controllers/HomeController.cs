@@ -15,10 +15,6 @@ namespace CoursesPlatform.Controllers
         {
         }
 
-        public IActionResult Index()
-        {
-            return Ok();
-        }
 
     }
 }

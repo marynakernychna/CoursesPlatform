@@ -1,0 +1,64 @@
+{
+  "name": "acc-front",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "antd": "^4.16.13",
+    "axios": "^0.21.4",
+    "bootstrap": "^5.1.1",
+    "connected-react-router": "^6.9.1",
+    "express": "^4.17.1",
+    "install": "^0.13.0",
+    "jquery": "^3.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^3.1.2",
+    "merge": "^2.1.1",
+    "mkcert": "^1.4.0",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.13",
+    "npm": "^7.24.2",
+    "oidc-client": "^1.11.5",
+    "react": "^17.0.2",
+    "react-bootstrap": "^2.0.2",
+    "react-dom": "^17.0.2",
+    "react-facebook-login": "^4.1.1",
+    "react-redux": "^7.2.5",
+    "react-router-dom": "^5.3.0",
+    "react-scripts": "^4.0.3",
+    "react-table": "^7.7.0",
+    "reactstrap": "^8.10.0",
+    "redux": "^4.1.1",
+    "redux-thunk": "^2.3.0",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "redux-devtools-extension": "^2.13.9"
+  }
+}
