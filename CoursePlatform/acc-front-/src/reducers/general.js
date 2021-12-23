@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { roles } from '../actions/account/roles';
-import * as types from "../actions/general/types";
-import { CHANGESECTION, LOGOUT } from '../actions/general/types';
+import { roles } from '../constants/roles';
+import * as types from '../reduxActions/general/types';
+import { CHANGESECTION } from '../reduxActions/panel/types';
 
 const intialState = {
     role: roles.GUEST,
@@ -40,17 +40,27 @@ const generalReducer = (state = intialState, action) => {
 
         case types.SETACCESS: {
 
-            var token = action.payload;
+            const { accessToken, refreshToken } = action.payload;
 
-            var role = jwt.decode(token).roles;
+            var role = jwt.decode(accessToken).roles;
 
-            localStorage.setItem("authToken", token);
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
 
             return {
                 ...state,
                 isAuthUser: true,
                 role: role
             };
+        }
+
+        case types.UPDATEACCESS: {
+
+            localStorage.removeItem("accessToken");
+
+            localStorage.setItem("accessToken", action.payload);
+
+            return state;
         }
 
         case types.SETALERT: {
@@ -89,7 +99,11 @@ const generalReducer = (state = intialState, action) => {
             }
         }
 
-        case LOGOUT: {
+        case types.LOGOUT: {
+
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+
             return {
                 ...state,
                 role: roles.GUEST,

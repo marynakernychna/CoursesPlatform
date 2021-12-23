@@ -5,7 +5,7 @@ import {
     startLoading,
     finishLoading,
     setAlert
- } from '../../../actions/general';
+ } from '../../../reduxActions/general';
 
 const mapState = (stateRedux) => {
     return {

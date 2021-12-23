@@ -1,0 +1,58 @@
+﻿@model CoursesPlatform.Models.Razor.EmailChangingEmail
+
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="padding: 20px; background-color: black; color: white">
+    <div>
+        <p style="font-size: large">Hi, <span style="font-style: italic; font-weight: 900">@Model.OldInfo.Name @Model.OldInfo.Surname</span> !</p>
+        <br />
+
+        <p>We inform you that the administrator has changed your profile data.</p>
+
+        @if (Model.IsNameChanged)
+        {
+            <p>
+                Your name 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.OldInfo.Name»
+                </span>
+                has been changed to 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.NewInfo.Name»
+                </span>.
+            </p>
+        }
+        @if (Model.IsSurnameChanged)
+        {
+            <p>
+                Your surname 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.OldInfo.Surname»
+                </span>
+                has been changed to 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.NewInfo.Surname»
+                </span>.
+            </p>
+        }
+        @if (Model.IsEmailChanged)
+        {
+            <p>
+                Your email address 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.OldInfo.Email»
+                </span>
+                has been changed to 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.NewInfo.Email»
+                </span>.
+            </p>
+        }
+
+        <br />
+        <p>If we made a mistake or you have a question, please contact us.</p>
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import Alerts from './alert';
 import { connect } from 'react-redux';
-import { closeAlert } from '../../actions/general';
+import { closeAlert } from '../../reduxActions/general';
 
 const mapState = (stateRedux) => {
     return {

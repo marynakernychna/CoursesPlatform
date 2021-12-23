@@ -77,7 +77,6 @@ D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Serilog.Formatting.Co
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Serilog.Sinks.Async.dll
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Serilog.Sinks.File.dll
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Serilog.Sinks.RollingFile.dll
-D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\acc-front-\build\asset-manifest.json
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\acc-front-\package-lock.json
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\acc-front-\package.json
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\CoursesPlatform.StaticWebAssets.xml
@@ -121,3 +120,17 @@ D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\runtimes\win-x64\nati
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\runtimes\win-x86\native\sni.dll
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\runtimes\unix\lib\netstandard2.0\System.Data.SqlClient.dll
 D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\runtimes\win\lib\netstandard2.0\System.Data.SqlClient.dll
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorAssemblyInfo.cache
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorAssemblyInfo.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\CoursesPlatform.Views.dll
+D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\CoursesPlatform.Views.pdb
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.TagHelpers.input.cache
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.TagHelpers.output.cache
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorCoreGenerate.cache
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\AccountRemovalEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\ConfirmationEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseEditingEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseRemovalEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\EmailChangingEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorTargetAssemblyInfo.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.Views.pdb

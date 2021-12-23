@@ -1,59 +1,55 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { Menu } from 'antd';
 import {
     DesktopOutlined,
     AppstoreOutlined,
-    ExportOutlined
+    ExportOutlined,
+    UserOutlined
 } from '@ant-design/icons';
-import { sectionsNames } from '../sectionsNames';
+import { Link, useHistory } from 'react-router-dom';
+import { logOut } from '../../../reduxActions/general';
+import { useDispatch } from 'react-redux';
 
-class StudentSideMenu extends React.Component {
+function StudentSideMenu() {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-        };
+    const dispatch = useDispatch();
+
+    const logOut_ = () => {
+        
+        dispatch(logOut());
     }
 
-    logOut = () => {
-        const {
-            logOut
-        } = this.props;
+    // const history = useHistory();
 
-        logOut();
-    }
-
-    changeSectionName = (name) => {
-        const {
-            changeSection
-        } = this.props;
-
-        changeSection(name);
-    }
-
-    render() {
-
-        return (
-            <Fragment className="block" >
-                <Menu
-                    defaultSelectedKeys={['1']}
-                    defaultOpenKeys={['sub1']}
-                    mode="inline"
-                    theme="dark"
-                >
-                    <Menu.Item key="1" icon={<DesktopOutlined />} onClick={() => this.changeSectionName(sectionsNames.COURSES)}>
+    return (
+        <div className="block" >
+            <Menu
+                defaultSelectedKeys={["/student/courses"]}
+                mode="inline"
+                theme="dark"
+            >
+                <Menu.Item key="/student/courses" icon={<DesktopOutlined />} >
+                    <Link to="/student/courses">
                         Courses
-                    </Menu.Item>
-                    <Menu.Item key="2" icon={<AppstoreOutlined />} onClick={() => this.changeSectionName(sectionsNames.SUBSCRIPTIONS)}>
+                    </Link>
+                </Menu.Item>
+                <Menu.Item key="/student/subscriptions" icon={<AppstoreOutlined />} >
+                    <Link to="/student/subscriptions">
                         Subscriptions
-                    </Menu.Item>
-                    <Menu.Item key="4" icon={<ExportOutlined />} onClick={() => this.logOut()}>
-                        Log out
-                    </Menu.Item>
-                </Menu>
-            </Fragment>
-        );
-    }
+                    </Link>
+                </Menu.Item>
+                <Menu.Item key="/student/profile" icon={<UserOutlined />} >
+                    <Link to="/student/profile">
+                        Profile
+                    </Link>
+                </Menu.Item>
+                <Menu.Item key="1" icon={<ExportOutlined />}
+                onClick={logOut_}>
+                    Log out
+                </Menu.Item>
+            </Menu>
+        </div>
+    );
 }
 
 export default StudentSideMenu;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace CoursesPlatform.Entity_Framework.Models
+namespace CoursesPlatform.EntityFramework.Models
 {
     public class Course
     {

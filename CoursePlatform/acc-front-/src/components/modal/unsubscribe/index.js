@@ -4,9 +4,9 @@ import {
     closeModal,
     startLoading,
     finishLoading,
-    setAlert,
-    setIsElementsChanged
- } from '../../../actions/general';
+    setAlert
+ } from '../../../reduxActions/general';
+ import { setIsElementsChanged } from '../../../reduxActions/panel';
 
 const mapState = (stateRedux) => {
     return {

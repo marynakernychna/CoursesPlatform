@@ -1,7 +1,7 @@
 import Subscription from './subscription';
 import { connect } from 'react-redux';
 import { withRouter } from "react-router-dom";
-import { openModal } from '../../../../actions/general';
+import { openModal } from '../../../../reduxActions/general';
 
 const mapState = (stateRedux) => {
     return {

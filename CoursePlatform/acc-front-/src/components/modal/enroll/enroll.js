@@ -29,6 +29,7 @@ class Enroll extends React.Component {
     }
 
     closeModal = () => {
+
         const {
             closeModal
         } = this.props;
@@ -59,7 +60,7 @@ class Enroll extends React.Component {
             startDate: moment(courseDate.startDate._d).format('YYYY-MM-DD'),
             courseId: this.props.info.id
         }
-        
+
         this.closeModal();
 
         coursesService.enroll(request)
@@ -72,10 +73,15 @@ class Enroll extends React.Component {
                 });
             },
                 err => {
-                    this.setWarning(err.response.data.status);
+
+                    this.setWarning(err.response);
                 })
             .catch(err => {
-                console.log("Frontend error", err);
+
+                setAlert({
+                    type: alertTypes.WARNING,
+                    message: "Something went wrong. Try again!"
+                });
             })
             .finally(() => {
                 finishLoading();
@@ -89,7 +95,12 @@ class Enroll extends React.Component {
         } = this.props;
 
         var message;
-        err === 400 ? message = "You are already enrolled !" :
+
+        err.status === 400 &&
+        err.data != undefined &&
+        err.data.errors != undefined &&
+        err.data.errors.Message != undefined ?
+            message = err.data.errors.Message :
             message = "Server error. Try again !";
 
         setAlert({

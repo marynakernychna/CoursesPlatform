@@ -1,5 +1,6 @@
 .alert {
     display: block;
-    align-self: end;
+    align-self: flex-end;
     height: 0px;
+    margin-bottom: 20px;
 }

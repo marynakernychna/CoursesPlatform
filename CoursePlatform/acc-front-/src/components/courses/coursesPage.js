@@ -1,15 +1,12 @@
 import React from 'react';
-import { Layout } from 'antd';
+import { Layout, Spin } from 'antd';
 import Alerts from '../alert/index';
 import Modals from '../modal/index';
-import SortMenu from '../sortMenu/index';
-import EclipseWidget from '../eclipse';
-import { sectionsNames } from '../sideMenu/sectionsNames';
-import Subscriptions from './subscriptions/index';
-import AllCourses from './allCourses/index';
-import PagePagination from '../pagination/index';
+import SideMenu from '../sideMenu/index';
+import { sideMenuTypes } from '../sideMenu/types';
 
 const { Content } = Layout;
+const { Sider } = Layout;
 
 class CoursesPage extends React.Component {
 
@@ -20,63 +17,52 @@ class CoursesPage extends React.Component {
             isAlert: this.props.isAlert,
             isModal: this.props.isModal,
 
-            loading: this.props.loading,
-
-            isAllCourses: true
+            loading: this.props.loading
         };
     }
 
+    componentDidMount() {
+        document.title = "Courses";
+    };
+
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
-        if (nextProps.sectionName == sectionsNames.COURSES &&
-            prevState.isAllCourses != true) {
-
-            return {
-                isAllCourses: true
-            }
+        return {
+            loading: nextProps.loading,
+            isAlert: nextProps.isAlert,
+            isModal: nextProps.isModal
         }
-        if (nextProps.sectionName == sectionsNames.SUBSCRIPTIONS &&
-            prevState.isAllCourses != false) {
-
-            return {
-                isAllCourses: false
-            }
-        }
-
-            return {
-                loading: nextProps.loading,
-                isAlert: nextProps.isAlert,
-                isModal: nextProps.isModal
-            }
     }
 
     render() {
 
-        const { loading, isAlert, isModal, isAllCourses } = this.state;
+        const { loading, isAlert, isModal } = this.state;
 
         return (
 
-            <Layout style={{ minHeight: '100vh', paddingTop: '20px !important' }}>
+            <Layout style={{ minHeight: '100vh' }}>
 
-                {isAlert && <Alerts />}
+                <Sider style={{ paddingTop: '20px', maxHeight: '100%' }}>
+                    <SideMenu type={sideMenuTypes.STUDENT} />
+                </Sider>
 
-                <Content
-                    style={{
-                        padding: 30,
-                        minHeight: 280
-                    }}
-                >
-                    <SortMenu />
+                <Layout style={{ minHeight: '100vh', paddingTop: '20px !important' }}>
 
-                    {isAllCourses ? <AllCourses /> : <Subscriptions />}
+                    <Spin size="large" spinning={loading}>
 
-                    <PagePagination />
+                        <div>
 
-                </Content>
+                            {isAlert && <Alerts />}
 
-                {isModal && <Modals />}
+                            {this.props.children}
 
-                {loading && <EclipseWidget />}
+                            {isModal && <Modals />}
+
+                        </div>
+
+                    </Spin>
+
+                </Layout>
 
             </Layout>
         );

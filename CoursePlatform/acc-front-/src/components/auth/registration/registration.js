@@ -1,18 +1,17 @@
-import styles from '../registration/styles.module.css';
-import { Form, Input, Button, InputNumber } from 'antd';
-import React, { Fragment } from 'react';
-import authService from '../service';
-import EclipseWidget from '../../eclipse'
+import styles from '../styles.module.css';
+import { Form, Input, Button, InputNumber, Alert, DatePicker, Space } from 'antd';
+import React from 'react';
+import authService from '../../../services/auth';
+import moment from 'moment';
 import { alertTypes } from '../../alert/types';
-import Alerts from '../../alert/index';
+import { pagesNames } from '../../../constants/pagesNames';
 
 class Registration extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: this.props.loading,
-            isAlert: this.props.isAlert
+            dateFormat: "YYYY-MM-DD"
         };
     }
 
@@ -20,19 +19,12 @@ class Registration extends React.Component {
         document.title = 'Registration';
     };
 
-    static getDerivedStateFromProps = (nextProps, prevState) => {
-
-        return {
-            loading: nextProps.loading,
-            isAlert: nextProps.isAlert
-        }
-    }
-
     register = (userData) => {
 
         const {
             startLoading,
-            finishLoading
+            finishLoading,
+            setAlert
         } = this.props;
 
         startLoading();
@@ -40,184 +32,208 @@ class Registration extends React.Component {
         authService.registerUser(userData)
             .then(() => {
 
-                this.props.history.push("/login");
-
+                this.changePage();
                 finishLoading();
             },
                 err => {
-                    this.setWarning(err.response.status);
+
+                    this.setWarning(err.response.data.errors);
                 })
-            .catch(err => {
-                console.log("Frontend error", err);
+            .catch(() => {
+
+                setAlert({ type: alertTypes.WARNING, message: "Something went wrong. Try again !" });
+            })
+            .finally(() => {
+
                 finishLoading();
-            });
+            })
     }
 
     setWarning = (err) => {
+
         const {
             setAlert,
             finishLoading
         } = this.props;
 
-        var message;
-        err === 400 ? message = "An account with this email already exists !" :
-            message = "Server error. Try again !";
+        if (err != undefined) {
+
+            this.setState({
+                errors: err.Password.join(' ')
+            })
+        }
 
         var model = {
             type: alertTypes.WARNING,
-            message: message
+            message: err != undefined && err.Message != undefined ? err.Message : "Something went wrong. Try again !"
         }
 
         setAlert(model);
         finishLoading();
     }
 
-    render() {
+    changePage = () => {
+        const {
+            changeAuthPage
+        } = this.props;
 
-        const { loading, isAlert } = this.state;
+        changeAuthPage(pagesNames.LOGIN);
+    }
+
+    setDisabledDate = (current) => {
+        const now = moment();
 
         return (
-            <Fragment>
-                <div className={styles.registrationBlock}>
+            current > now.subtract(14, "years")
+        );
+    }
 
-                    <h3 style={{ marginBottom: '35px', color: 'white' }}>Registration</h3>
+    render() {
 
-                    <Form
-                        name="register"
-                        onFinish={this.register}
-                        scrollToFirstError
+        const { errors } = this.state;
+
+        return (
+            <>
+                <h3 style={{ marginBottom: '35px', color: 'white' }}>Registration</h3>
+
+                <Form
+                    name="register"
+                    onFinish={this.register}
+                    scrollToFirstError
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            {
+                                type: 'email',
+                                message: 'The input is not valid E-mail!',
+                            },
+                            {
+                                required: true,
+                                message: 'Please input your E-mail!',
+                            },
+                        ]}
                     >
-                        <Form.Item
-                            name="email"
-                            rules={[
-                                {
-                                    type: 'email',
-                                    message: 'The input is not valid E-mail!',
-                                },
-                                {
-                                    required: true,
-                                    message: 'Please input your E-mail!',
-                                },
-                            ]}
-                        >
-                            <Input placeholder="Email" />
-                        </Form.Item>
+                        <Input placeholder="Email" />
+                    </Form.Item>
 
-                        <Form.Item
-                            name="name"
-                            rules={[
-                                {
-                                    type: 'string',
-                                    message: 'The input is not valid Name!',
-                                },
-                                {
-                                    required: true,
-                                    message: 'Please input your Name!',
-                                },
-                            ]}
-                        >
-                            <Input placeholder="Name" />
-                        </Form.Item>
+                    <Form.Item
+                        name="name"
+                        rules={[
+                            {
+                                type: 'string',
+                                pattern: new RegExp(/^[a-zA-Z]+$/i),
+                                message: 'The input is not valid Name!',
+                            },
+                            {
+                                required: true,
+                                message: 'Please input your Name!',
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Name" />
+                    </Form.Item>
 
-                        <Form.Item
-                            name="surname"
-                            rules={[
-                                {
-                                    type: 'string',
-                                    message: 'The input is not valid Surname!',
+                    <Form.Item
+                        name="surname"
+                        rules={[
+                            {
+                                type: 'string',
+                                pattern: new RegExp(/^[a-zA-Z]+$/i),
+                                message: 'The input is not valid Surname!',
+                            },
+                            {
+                                required: true,
+                                message: 'Please input your Surname!',
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Surname" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="birthday"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please choose your birthday date!',
+                            },
+                        ]}
+                    >
+                        <DatePicker format={this.state.dateFormat}
+                            disabledDate={this.setDisabledDate} />
+
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please input your password!',
+                            },
+                        ]}
+                        hasFeedback
+                    >
+                        <Input.Password placeholder="Password" />
+                    </Form.Item>
+
+                    {errors ? (
+                        <Alert
+                            message={errors}
+                            type="error"
+                            showIcon
+                            closable
+                            style={{ marginBottom: 20 }}
+                        />
+                    ) : null}
+
+                    <Form.Item
+                        name="confirm"
+                        dependencies={['password']}
+                        hasFeedback
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please confirm your password!',
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('password') === value) {
+                                        return Promise.resolve();
+                                    }
+
+                                    return Promise.reject(
+                                        new Error
+                                            (
+                                                'The two passwords that you entered do not match!'
+                                            )
+                                    );
                                 },
-                                {
-                                    required: true,
-                                    message: 'Please input your Surname!',
-                                },
-                            ]}
-                        >
-                            <Input placeholder="Surname" />
-                        </Form.Item>
+                            }),
+                        ]}
+                    >
+                        <Input.Password placeholder="Confirm password" />
+                    </Form.Item>
 
-                        <Form.Item
-                            name="age"
-                            rules={[
-                                {
-                                    type: 'number',
-                                    message: 'The input is not valid Age!',
-                                },
-                                {
-                                    required: true,
-                                    message: 'Please input your Age!',
-                                },
-                            ]}
-                        >
-                            <InputNumber
-                                min={14}
-                                max={100}
-                                placeholder="Age" />
-                        </Form.Item>
+                    <Form.Item>
+                        <Button type="primary"
+                            htmlType="submit"
+                            className="registerBtn"
+                            style={{ width: '100%' }}>
+                            Register
+                        </Button>
 
-                        <Form.Item
-                            name="password"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please input your password!',
-                                },
-                            ]}
-                            hasFeedback
-                        >
-                            <Input.Password placeholder="Password" />
-                        </Form.Item>
+                    </Form.Item>
+                </Form>
 
-                        <Form.Item
-                            name="confirm"
-                            dependencies={['password']}
-                            hasFeedback
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please confirm your password!',
-                                },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || getFieldValue('password') === value) {
-                                            return Promise.resolve();
-                                        }
-
-                                        return Promise.reject(
-                                            new Error
-                                                (
-                                                    'The two passwords that you entered do not match!'
-                                                )
-                                        );
-                                    },
-                                }),
-                            ]}
-                        >
-                            <Input.Password placeholder="Confirm password" />
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Button type="primary"
-                                htmlType="submit"
-                                className="registerBtn"
-                                style={{ width: '100%' }}>
-                                Register
-                            </Button>
-
-                        </Form.Item>
-                    </Form>
-
-                    <div className={styles.registrationBottomText}>
-                        Or <a href="/login"
-                            style={{ fontStyle: 'italic', fontWeight: '500' }}>
-                            login now!</a>
-                    </div>
+                <div className={styles.bottomText}>
+                    Or <a
+                        style={{ fontStyle: 'italic', fontWeight: '500' }}
+                        onClick={() => this.changePage()}>
+                        login now!</a>
                 </div>
-
-                {isAlert && <Alerts />}
-
-                {loading && <EclipseWidget />}
-
-            </Fragment>
+            </>
         );
     }
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Button, Dropdown, Space, Menu } from 'antd';
-import { sortByTypes } from '../../actions/general/sortByTypes';
-import { sortDirectionTypes } from '../../actions/general/sortDirectionTypes';
-import { elementsOnPage } from '../../actions/general/elementsOnPageCount';
+import { sortByTypes } from '../../constants/sortByTypes';
+import { sortDirectionTypes } from '../../constants/sortDirectionTypes';
+import { elementsOnPage } from '../../constants/elementsOnPageCount';
 
 class SortMenu extends React.Component {
 

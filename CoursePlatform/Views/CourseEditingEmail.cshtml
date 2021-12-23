@@ -1,0 +1,70 @@
+﻿@model CoursesPlatform.Models.Razor.CourseEditingEmail
+
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="padding: 20px; background-color: black; color: white">
+    <div>
+        <p style="font-size: large">Hi, <span style="font-style: italic; font-weight: 900">@Model.User.Name @Model.User.Surname</span> !</p>
+
+        @if (Model.IsTitleChanged && Model.IsDescriptionChanged)
+        {
+            <p>
+                We inform you that the course is called
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.OldTitle» 
+                </span>
+                has been renamed to «@Model.NewCourseInfo.Title».<br />
+                The description has been changed from
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.OldDescription» 
+                </span>
+                to 
+                <span style="font-style: italic; font-weight: 600">
+                    «@Model.NewCourseInfo.Description»
+                </span>.
+            </p>
+        }
+        else
+        {
+            if (Model.IsTitleChanged)
+            {
+                <p>
+                    We inform you that the course is called
+                    <span style="font-style: italic; font-weight: 600">
+                        «@Model.OldTitle» 
+                    </span>
+                    has been renamed to 
+                    <span style="font-style: italic; font-weight: 600">
+                        «@Model.NewCourseInfo.Title».
+                    </span>
+                </p>
+            }
+            else
+            {
+                <p>
+                    We inform you that the description of the course
+                    <span style="font-style: italic; font-weight: 600">
+                        «@Model.OldTitle» 
+                    </span>
+                    has been changed from 
+                    <span style="font-style: italic; font-weight: 600">
+                        «@Model.OldDescription» 
+                    </span>
+                    to 
+                    <span style="font-style: italic; font-weight: 600">
+                        «@Model.NewCourseInfo.Description»
+                    </span>.
+                </p>
+            }
+        }
+
+        <p>
+            <br />
+            <br />
+            Good day!
+        </p>
+    </div>
+</body>
+</html>

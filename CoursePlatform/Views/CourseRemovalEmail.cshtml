@@ -1,0 +1,18 @@
+﻿@model CoursesPlatform.Models.Razor.CourseRemovalEmail
+
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="padding: 20px; background-color: black; color: white">
+    <div>
+        <p style="font-size: large">Hi, <span style="font-style: italic; font-weight: 900">@Model.UserName @Model.UserSurname</span> !</p>
+        <p>
+            We regret to inform you that the «<span style="font-style: italic; font-weight: 900">@Model.CourseTitle</span>» course has been deleted.<br />
+            Your subscription has been canceled.<br />
+            We are waiting for you on other courses !<br />
+            Good day!
+        </p>
+    </div>
+</body>
+</html>

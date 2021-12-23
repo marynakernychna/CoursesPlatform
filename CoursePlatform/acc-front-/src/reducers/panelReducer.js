@@ -1,22 +1,9 @@
-import {
-    CHANGESECTION,
-    RESET_IS_SORT_CHANGED,
-    CHANGE_ELEMENTS_ON_PAGE_COUNT,
-    CHANGE_ELEMENTS_SORT_DIRECTION,
-    CHANGE_ELEMENTS_SORT_BY,
-    CHANGE_CURRENT_PAGE,
-    SET_TOTAL_COUNT,
-    RESET_IS_ELEMENTS_CHANGED,
-    SET_IS_ELEMENTS_CHANGED,
-    LOGOUT,
-    CLEAR_TOTAL_COUNT,
-    UPDATE_COURSES,
-    SET_COURSES
-} from "../actions/general/types";
-import { sectionsNames } from "../actions/general/sectionsNames";
-import { sortDirectionTypes } from "../actions/general/sortDirectionTypes";
-import { sortByTypes } from "../actions/general/sortByTypes";
-import { elementsOnPage } from "../actions/general/elementsOnPageCount";
+import * as types from "../reduxActions/panel/types";
+import { LOGOUT } from "../reduxActions/general/types";
+import { sectionsNames } from "../constants/sectionsNames";
+import { sortDirectionTypes } from "../constants/sortDirectionTypes";
+import { sortByTypes } from "../constants/sortByTypes";
+import { elementsOnPage } from '../constants/elementsOnPageCount';
 
 const intialState = {
     sectionName: sectionsNames.COURSES,
@@ -30,13 +17,13 @@ const intialState = {
     isSortingChanged: false,
     isElementsChanged: false,
 
-    courses: []
+    data: []
 }
 
 const panelReducer = (state = intialState, action) => {
     switch (action.type) {
 
-        case CHANGESECTION: {
+        case types.CHANGESECTION: {
             return {
                 ...state,
                 sectionName: action.payload,
@@ -49,14 +36,14 @@ const panelReducer = (state = intialState, action) => {
             }
         }
 
-        case RESET_IS_SORT_CHANGED: {
+        case types.RESET_IS_SORT_CHANGED: {
             return {
                 ...state,
                 isSortingChanged: false
             }
         }
 
-        case CHANGE_ELEMENTS_ON_PAGE_COUNT: {
+        case types.CHANGE_ELEMENTS_ON_PAGE_COUNT: {
             return {
                 ...state,
                 elementsOnPage: action.payload,
@@ -64,7 +51,7 @@ const panelReducer = (state = intialState, action) => {
             }
         }
 
-        case CHANGE_ELEMENTS_SORT_DIRECTION: {
+        case types.CHANGE_ELEMENTS_SORT_DIRECTION: {
             return {
                 ...state,
                 sortDirection: action.payload,
@@ -72,7 +59,7 @@ const panelReducer = (state = intialState, action) => {
             }
         }
 
-        case CHANGE_ELEMENTS_SORT_BY: {
+        case types.CHANGE_ELEMENTS_SORT_BY: {
             return {
                 ...state,
                 sortBy: action.payload,
@@ -80,7 +67,7 @@ const panelReducer = (state = intialState, action) => {
             }
         }
 
-        case CHANGE_CURRENT_PAGE: {
+        case types.CHANGE_CURRENT_PAGE: {
             return {
                 ...state,
                 currentPage: action.payload,
@@ -88,41 +75,41 @@ const panelReducer = (state = intialState, action) => {
             }
         }
 
-        case SET_TOTAL_COUNT: {
+        case types.SET_TOTAL_COUNT: {
             return {
                 ...state,
                 totalElementsCount: action.payload
             }
         }
 
-        case SET_IS_ELEMENTS_CHANGED: {
+        case types.SET_IS_ELEMENTS_CHANGED: {
             return {
                 ...state,
                 isElementsChanged: true
             }
         }
 
-        case RESET_IS_ELEMENTS_CHANGED: {
+        case types.RESET_IS_ELEMENTS_CHANGED: {
             return {
                 ...state,
                 isElementsChanged: false
             }
         }
 
-        case CLEAR_TOTAL_COUNT: {
+        case types.CLEAR_TOTAL_COUNT: {
             return {
                 ...state,
                 totalElementsCount: 0
             }
         }
 
-        case UPDATE_COURSES: {
-            
-            const courses = state.courses.map((item, index) => {
+        case types.UPDATE_TABLE_DATA: {
+
+            const data = state.data.map((item, index) => {
                 if (item.key !== action.payload.key) {
                     return item;
                 }
-
+                
                 return {
                     ...item,
                     ...action.payload.newData
@@ -131,14 +118,45 @@ const panelReducer = (state = intialState, action) => {
 
             return {
                 ...state,
-                courses
+                data
             }
         }
 
-        case SET_COURSES: {
+        case types.REMOVE_COURSE: {
+
+            var elementIndex = state.data.indexOf(action.payload);
+
+            state.data.splice(elementIndex, 1);
+
             return {
                 ...state,
-                courses: action.payload
+                data: [...state.data]
+            }
+        }
+
+        case types.REMOVE_STUDENT: {
+
+            var elementIndex = state.data.indexOf(action.payload);
+
+            state.data.splice(elementIndex, 1);
+
+            return {
+                ...state,
+                data: [...state.data]
+            }
+        }
+
+        case types.SET_COURSES: {
+            return {
+                ...state,
+                data: action.payload
+            }
+        }
+
+        case types.SET_STUDENTS: {
+            return {
+                ...state,
+                data: action.payload
             }
         }
 
@@ -152,7 +170,8 @@ const panelReducer = (state = intialState, action) => {
                 currentPage: 1,
                 totalElementsCount: 0,
                 isSortingChanged: false,
-                isElementsChanged: false
+                isElementsChanged: false,
+                data: []
             }
         }
 

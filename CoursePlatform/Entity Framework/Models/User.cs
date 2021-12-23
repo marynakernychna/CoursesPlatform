@@ -1,8 +1,10 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 
-namespace CoursesPlatform.Entity_Framework.Models
+namespace CoursesPlatform.EntityFramework.Models
 {
     public class User : IdentityUser
     {
@@ -13,9 +15,13 @@ namespace CoursesPlatform.Entity_Framework.Models
         public string Surname { get; set; }
 
         [Required]
-        public int Age { get; set; }
+        public DateTime Birthday { get; set; }
 
         [Required]
         public DateTime RegisteredDate { get; set; }
+
+        [JsonIgnore]
+        public List<RefreshToken> RefreshTokens { get; set; }
+
     }
 }

@@ -1,23 +1,19 @@
-import styles from '../login/styles.module.css'
-import React, { Fragment } from 'react';
+import React from 'react';
+import styles from '../styles.module.css';
 import { Input, Button, Form } from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import FacebookLogin from 'react-facebook-login';
-import authService from '../service';
-import { roles } from '../../../actions/account/roles';
-import EclipseWidget from '../../eclipse';
+import { roles } from '../../../constants/roles';
 import { alertTypes } from '../../alert/types';
-import Alerts from '../../alert/index';
-// import FacebookLogin from 'react-facebook-login';
+import authService from '../../../services/auth';
+import { pagesNames } from '../../../constants/pagesNames';
 
 class Login extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            role: this.props.role,
-            isAlert: this.props.isAlert,
-            loading: this.props.loading
+            role: this.props.role
         };
     }
 
@@ -28,9 +24,7 @@ class Login extends React.Component {
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
         return {
-            role: nextProps.role,
-            isAlert: nextProps.isAlert,
-            loading: nextProps.loading
+            role: nextProps.role
         }
     }
 
@@ -39,7 +33,8 @@ class Login extends React.Component {
         const {
             startLoading,
             finishLoading,
-            setAccess
+            setAccess,
+            setAlert
         } = this.props;
 
         startLoading();
@@ -47,21 +42,61 @@ class Login extends React.Component {
         authService.logIn(userData)
             .then((response) => {
 
-                setAccess(response.data.jwtToken);
-
+                setAccess(response.data);
                 this.redirect(this.state.role);
             },
                 err => {
-                    this.setWarning(err.response.status);
+
+                    this.setWarning(err.response.data);
                 })
-            .catch(err => {
-                console.log("Frontend error", err);
+            .catch(() => {
+
+                setAlert({ type: alertTypes.WARNING, message: "Something went wrong. Try again !" });
+            })
+            .finally(() => {
+
                 finishLoading();
-            });
+            })
+    }
+
+    responseFacebook = (response) => {
+
+        const {
+            startLoading,
+            finishLoading,
+            setAccess,
+            setAlert
+        } = this.props;
+
+        startLoading();
+
+        var model = {
+            value: response.accessToken
+        }
+
+        authService.LogInViaFacebook(model)
+            .then((response_) => {
+
+                setAccess(response_.data);
+                this.redirect(this.state.role);
+            },
+                err => {
+
+                    setAlert({ type: alertTypes.WARNING, message: "Something went wrong. Try again !" });
+                })
+            .catch(() => {
+
+                setAlert({ type: alertTypes.WARNING, message: "Something went wrong. Try again !" });
+            })
+            .finally(() => {
+
+                finishLoading();
+            })
     }
 
     redirect = (role) => {
         const {
+            setAlert,
             finishLoading
         } = this.props;
 
@@ -69,135 +104,120 @@ class Login extends React.Component {
 
         switch (role) {
             case roles.STUDENT:
-                this.props.history.push("/studentPanel");
-                break;
-            case roles.ADMIN:
-                this.props.history.push("/adminPanel");
-                break;
+                {
+                    this.props.history.push("/student/courses");
+                    break;
+                }
+            case roles.ADMINISTRATOR:
+                {
+                    this.props.history.push("/admin/courses");
+                    break;
+                }
+            default: {
+                setAlert({
+                    type: alertTypes.WARNING,
+                    message: "Something went wrong. Try again !"
+                });
+            }
         }
     }
 
-    setWarning = (err) => {
+    setWarning = (data) => {
+
         const {
             setAlert,
             finishLoading
         } = this.props;
 
-        var message;
-        switch (err) {
-            case 400: {
-                message = "Uncorrect login or password !";
-                break;
-            }
-            case 401: {
-                message = "Confirm your email !";
-                break;
-            }
-            default: {
-                message = "Server error. Try again !";
-            }
-        }
-
         var model = {
             type: alertTypes.WARNING,
-            message: message
+            message: data.errors.Message != undefined ?
+                data.errors.Message : "Uncorrect login or password. Try again !"
         }
 
         setAlert(model);
         finishLoading();
     }
 
-    responseFacebook = (response) => {
-        // var userData = {
-        //     name: response.first_name,
-        //     surname: response.last_name,
-        //     email: response.email
-        // }
+    changePage = () => {
+        const {
+            changeAuthPage
+        } = this.props;
 
-        console.log(response);
+        changeAuthPage(pagesNames.REGISTRATION);
     }
 
     render() {
 
-        const { loading, isAlert } = this.state;
-
         return (
-            <Fragment>
-                <div className={styles.loginBlock}>
+            <>
+                <h3 style={{ marginBottom: '35px', color: 'white' }}>Log in</h3>
 
-                    <h3 style={{ marginBottom: '35px', color: 'white' }}>Log in</h3>
-
-                    <Form
-                        name="basic"
-                        initialValues={{
-                            remember: true,
-                        }}
-                        onFinish={this.logIn}
+                <Form
+                    name="basic"
+                    initialValues={{
+                        remember: true,
+                    }}
+                    onFinish={this.logIn}
+                >
+                    <Form.Item
+                        name="email"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Input your email!',
+                                type: 'email'
+                            },
+                        ]}
                     >
-                        <Form.Item
-                            name="email"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Input your email!',
-                                    type: 'email'
-                                },
-                            ]}
+                        <Input
+                            prefix={<UserOutlined />}
+                            className="site-form-item-icon"
+                            placeholder="email" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Input your password!'
+                            },
+                        ]}
+                    >
+
+                        <Input.Password
+                            placeholder="password"
+                            prefix={<LockOutlined />}
+                            className="site-form-item-icon" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary"
+                            htmlType="submit"
+                            style={{ width: '100%' }}
                         >
-                            <Input
-                                prefix={<UserOutlined />}
-                                className="site-form-item-icon"
-                                placeholder="email" />
-                        </Form.Item>
+                            Log in
+                        </Button>
+                        <br />
+                    </Form.Item>
+                </Form>
 
-                        <Form.Item
-                            name="password"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Input your password!',
-                                },
-                            ]}
-                        >
-                            <Input.Password
-                                placeholder="password"
-                                prefix={<LockOutlined />}
-                                className="site-form-item-icon" />
-                        </Form.Item>
+                <FacebookLogin
+                    appId="651731139077984"
+                    autoLoad={false}
+                    callback={this.responseFacebook}
+                    cssClass="ant-btn ant-btn-primary login-form-button"
+                    buttonStyle={{ width: '100%' }}
+                />
 
-                        <Form.Item>
-                            <Button type="primary"
-                                htmlType="submit"
-                                style={{ width: '100%' }}
-                            >
-                                Log in
-                            </Button>
-                            <br />
-                        </Form.Item>
-                    </Form>
-
-                    <FacebookLogin
-                        appId="651731139077984"
-                        autoLoad={false}
-                        fields="first_name, last_name, picture, email"
-                        callback={this.responseFacebook}
-                        cssClass="ant-btn ant-btn-primary login-form-button"
-                        buttonStyle={{ width: '100%' }}
-                    />
-
-                    <div className={styles.loginBottomText}>
-                        Or <a href="/registration"
-                            style={{ fontStyle: 'italic', fontWeight: '500' }}>
-                            register now!</a>
-                    </div>
-
+                <div className={styles.bottomText}>
+                    Or <a
+                        style={{ fontStyle: 'italic', fontWeight: '500' }}
+                        onClick={() => this.changePage()}>
+                        register now!</a>
                 </div>
-
-                {isAlert && <Alerts />}
-
-                {loading && <EclipseWidget />}
-
-            </Fragment >
+            </>
         )
     };
 }

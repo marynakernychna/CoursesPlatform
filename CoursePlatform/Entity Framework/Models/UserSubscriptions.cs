@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CoursesPlatform.Entity_Framework.Models
+namespace CoursesPlatform.EntityFramework.Models
 {
     [Table("tblUserSubscriptions")]
     public class UserSubscriptions

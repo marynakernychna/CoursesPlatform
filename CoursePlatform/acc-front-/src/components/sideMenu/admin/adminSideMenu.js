@@ -6,57 +6,54 @@ import {
     ExportOutlined
 } from '@ant-design/icons';
 import { sectionsNames } from '../sectionsNames';
+import { Link } from 'react-router-dom';
+import { logOut } from '../../../reduxActions/general';
+import { useDispatch } from 'react-redux';
 
 const { SubMenu } = Menu;
 
-class AdminSideMenu extends React.Component {
+function AdminSideMenu() {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-        };
+    const dispatch = useDispatch();
+
+    const logOut_ = () => {
+
+        dispatch(logOut());
     }
 
-    logOut = () => {
-        const {
-            logOut
-        } = this.props;
-
-        logOut();
-    }
-
-    changeSection = (name) => {
-        const {
-            changeSection
-        } = this.props;
-
-        changeSection(name);
-    }
-
-    render() {
-
-        return (
-            <Fragment className="block" >
-                <Menu
-                    defaultSelectedKeys={['1']}
-                    defaultOpenKeys={['sub1']}
-                    mode="inline"
-                    theme="dark"
-                >
-                    <SubMenu key="sub1" icon={<DatabaseFilled />} title="Courses">
-                        <Menu.Item key="1" onClick={() => this.changeSection(sectionsNames.COURSES)}>View / Edit / Remove</Menu.Item>
-                        <Menu.Item key="2" onClick={() => this.changeSection(sectionsNames.ADDCOURSE)}>Add</Menu.Item>
-                    </SubMenu>
-                    <SubMenu key="sub2" icon={<ContactsFilled />} title="Students">
-                        <Menu.Item key="3" onClick={() => this.changeSection(sectionsNames.STUDENTS)}>View / Edit / Remove</Menu.Item>
-                    </SubMenu>
-                    <Menu.Item key="5" icon={<ExportOutlined />} onClick={() => this.logOut()}>
-                        Log out
+    return (
+        <div className="block" >
+            <Menu
+                defaultSelectedKeys={['/admin/courses']}
+                defaultOpenKeys={['sub1']}
+                mode="inline"
+                theme="dark"
+            >
+                <SubMenu key="sub1" icon={<DatabaseFilled />} title="Courses">
+                    <Menu.Item key="/admin/courses">
+                        <Link to="/admin/courses">
+                            View / Edit / Remove
+                        </Link>
                     </Menu.Item>
-                </Menu>
-            </Fragment>
-        );
-    }
+                    <Menu.Item key="/admin/add-course">
+                        <Link to="/admin/add-course">
+                            Add
+                        </Link>
+                    </Menu.Item>
+                </SubMenu>
+                <SubMenu key="sub2" icon={<ContactsFilled />} title="Students">
+                    <Menu.Item key="/admin/students">
+                        <Link to="/admin/students">
+                            View / Edit / Remove
+                        </Link>
+                    </Menu.Item>
+                </SubMenu>
+                <Menu.Item key="1" icon={<ExportOutlined />} onClick={logOut_}>
+                    Log out
+                </Menu.Item>
+            </Menu>
+        </div>
+    );
 }
 
 export default AdminSideMenu;

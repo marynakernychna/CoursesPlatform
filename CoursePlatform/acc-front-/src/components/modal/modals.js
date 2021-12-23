@@ -2,7 +2,10 @@ import React from 'react';
 import { modalsTypes } from './modalsTypes';
 import Enroll from "./enroll/index";
 import Unsubscribe from "./unsubscribe/index";
-import Edit from './edit/index';
+import Edit from './editCourse/index';
+import Remove from './removeCourse/index';
+import EditStudent from './editStudent/index';
+import RemoveStudent from './removeStudent/index';
 
 class Modals extends React.Component {
 
@@ -31,6 +34,15 @@ class Modals extends React.Component {
             }
             case modalsTypes.EDIT_COURSE: {
                 return <Edit info={this.state.modalInfo.info} />
+            }
+            case modalsTypes.REMOVE_COURSE: {
+                return <Remove info={this.state.modalInfo.info} />
+            }
+            case modalsTypes.EDIT_STUDENT: {
+                return <EditStudent info={this.state.modalInfo.info} />
+            }
+            case modalsTypes.REMOVE_STUDENT: {
+                return <RemoveStudent info={this.state.modalInfo.info} />
             }
         }
     }

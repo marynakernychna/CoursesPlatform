@@ -4,12 +4,14 @@ import { withRouter } from "react-router-dom";
 import {
     startLoading,
     finishLoading,
-    setAlert,
+    setAlert
+} from '../../../reduxActions/general';
+import {
     resetIsSortChangedStatus,
     setTotalCount,
     resetIsElementsChanged,
     clearTotalCount
-} from '../../../actions/general';
+} from '../../../reduxActions/panel';
 
 const mapState = (stateRedux) => {
     return {

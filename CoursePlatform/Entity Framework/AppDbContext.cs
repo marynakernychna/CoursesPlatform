@@ -1,8 +1,8 @@
-﻿using CoursesPlatform.Entity_Framework.Models;
+﻿using CoursesPlatform.EntityFramework.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace CoursesPlatform.Entity_Framework
+namespace CoursesPlatform.EntityFramework
 {
     public class AppDbContext : IdentityDbContext<User>
     {
@@ -11,6 +11,8 @@ namespace CoursesPlatform.Entity_Framework
         public DbSet<Course> Courses { get; set; }
 
         public DbSet<UserSubscriptions> UsersSubscriptions { get; set; }
+
+        public DbSet<ScheduleHangfireJob> ScheduleHangfireJobs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

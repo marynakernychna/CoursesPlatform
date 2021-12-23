@@ -1,7 +1,12 @@
 import React from 'react';
 import coursesService from '../../../services/courses';
 import { alertTypes } from '../../alert/types';
+import PagePagination from '../../pagination/index';
+import SortMenu from '../../sortMenu/index';
 import Course from './course/index';
+import { Layout } from 'antd';
+
+const { Content } = Layout;
 
 class AllCourses extends React.Component {
 
@@ -74,22 +79,25 @@ class AllCourses extends React.Component {
 
         startLoading();
 
-        coursesService.getAllCourses(model)
+        coursesService.getCoursesOnPage(model)
             .then((response) => {
 
                 this.setState({
                     courses: response.data.courses
                 });
 
-                setTotalCount(response.data.totalSize);
+                setTotalCount(response.data.totalCount);
             },
                 err => {
+
                     clearTotalCount();
                     this.setWarningAlert();
+
                 })
             .catch(err => {
+
                 clearTotalCount();
-                console.log("Frontend error", err);
+                this.setWarningAlert();
             })
             .finally(() => {
                 finishLoading();
@@ -114,7 +122,7 @@ class AllCourses extends React.Component {
 
         return {
             pageNumber: this.state.currentPage,
-            elemOnPage: this.state.elementsOnPage,
+            elementsOnPage: this.state.elementsOnPage,
             sortDirection: this.state.sortDirection,
             sortBy: this.state.sortBy
         }
@@ -123,13 +131,24 @@ class AllCourses extends React.Component {
     render() {
 
         return (
-            <>
+
+            <Content
+                style={{
+                    padding: 30,
+                    minHeight: 280
+                }}
+            >
+                <SortMenu />
+
                 <div>
                     {this.state.courses.map((info, index) =>
                         <Course info={info} />
                     )}
                 </div>
-            </>
+
+                <PagePagination />
+
+            </Content>
         );
     }
 }

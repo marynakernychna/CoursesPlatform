@@ -5,11 +5,13 @@ import {
     startLoading,
     finishLoading,
     setAlert,
-    openModal,
+    openModal
+} from '../../reduxActions/general';
+import {
     changeElementsOnPageCount,
     changeElementsSortDirection,
     changeElementsSortBy
-} from '../../actions/general';
+} from '../../reduxActions/panel';
 
 const mapState = (stateRedux) => {
     return {

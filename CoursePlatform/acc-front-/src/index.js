@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import App from './App'
 import configureStore from './configureStore'
 
-const store = configureStore()
+const store = configureStore();
 
 const rootElement = document.getElementById('root');
 
@@ -14,3 +14,5 @@ render(
     </Provider>,
   rootElement
 );
+
+export default store;

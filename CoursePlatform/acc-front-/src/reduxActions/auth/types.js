@@ -1,0 +1,1 @@
+export const CHANGE_AUTH_PAGE = "auth/CHANGE_AUTH_PAGE";

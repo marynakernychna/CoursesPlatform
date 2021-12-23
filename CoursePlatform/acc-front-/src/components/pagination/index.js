@@ -1,7 +1,7 @@
 import PagePagination from './pagination';
 import { connect } from 'react-redux';
 import { withRouter } from "react-router-dom";
-import { changeCurrentPage } from '../../actions/general';
+import { changeCurrentPage } from '../../reduxActions/panel';
 
 const mapState = (stateRedux) => {
     return {

@@ -1,6 +1,6 @@
 export const sectionsNames = {
     'COURSES': 'Courses',
-    'ADDCOURSE': 'AddCourse',
+    'ADDCOURSE': 'Add course',
     'SUBSCRIPTIONS': 'Subscriptions',
     'STUDENTS': 'Students'
 }

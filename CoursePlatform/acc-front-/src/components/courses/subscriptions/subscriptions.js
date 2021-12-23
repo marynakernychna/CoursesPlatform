@@ -2,6 +2,11 @@ import React from 'react';
 import coursesService from '../../../services/courses';
 import { alertTypes } from '../../alert/types';
 import Subscription from './subscription/index';
+import PagePagination from '../../pagination/index';
+import SortMenu from '../../sortMenu/index';
+import { Layout } from 'antd';
+
+const { Content } = Layout;
 
 class Subscriptions extends React.Component {
 
@@ -51,9 +56,9 @@ class Subscriptions extends React.Component {
     }
 
     static getDerivedStateFromProps = (nextProps, prevState) => {
-        
+
         if (nextProps.isSortingChanged || nextProps.isElementsChanged) {
-            
+
             return {
                 elementsOnPage: nextProps.elementsOnPage,
                 sortDirection: nextProps.sortDirection,
@@ -89,15 +94,17 @@ class Subscriptions extends React.Component {
                     subscriptions: response.data.subscriptions
                 });
 
-                setTotalCount(response.data.totalSize);
+                setTotalCount(response.data.totalCount);
             },
                 err => {
+
                     clearTotalCount();
                     this.setWarningAlert();
                 })
             .catch(err => {
+
                 clearTotalCount();
-                console.log("Frontend error", err);
+                this.setWarningAlert();
             })
             .finally(() => {
                 finishLoading();
@@ -121,7 +128,7 @@ class Subscriptions extends React.Component {
     formRequestModel = () => {
         return {
             pageNumber: this.state.currentPage,
-            elemOnPage: this.state.elementsOnPage,
+            elementsOnPage: this.state.elementsOnPage,
             sortDirection: this.state.sortDirection,
             sortBy: this.state.sortBy
         }
@@ -130,11 +137,24 @@ class Subscriptions extends React.Component {
     render() {
 
         return (
-            <div>
-                {this.state.subscriptions.map((course, index) =>
-                    <Subscription info={course} />
-                )}
-            </div>
+
+            <Content
+                style={{
+                    padding: 30,
+                    minHeight: 280
+                }}
+            >
+                <SortMenu />
+
+                <div>
+                    {this.state.subscriptions.map((course, index) =>
+                        <Subscription info={course} />
+                    )}
+                </div>
+
+                <PagePagination />
+
+            </Content>
         );
     }
 }

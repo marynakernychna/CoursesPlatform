@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Form } from 'antd';
 import coursesService from '../../../services/courses';
+import authService from '../../../services/auth';
 import { alertTypes } from '../../alert/types';
 
 class Unsubscribe extends React.Component {
@@ -61,17 +62,30 @@ class Unsubscribe extends React.Component {
                 setIsElementsChanged();
             },
                 err => {
-                    setAlert({
-                        type: alertTypes.WARNING,
-                        message: "Server error. Try again !"
-                    });
+
+                    this.setWarningAlert();                    
                 })
             .catch(err => {
-                console.log("Frontend error", err);
+                
+                this.setWarningAlert();
             })
             .finally(() => {
                 finishLoading();
             });
+    }
+
+    setWarningAlert = () => {
+
+        const {
+            setAlert
+        } = this.props;
+
+        var model = {
+            type: alertTypes.WARNING,
+            message: "Something went wrong. Try again!"
+        }
+
+        setAlert(model);
     }
 
     render() {

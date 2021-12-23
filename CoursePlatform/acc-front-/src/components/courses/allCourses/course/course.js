@@ -27,6 +27,7 @@ class Course extends React.Component {
 
         return (
             <div style={{ width: '100%' }} >
+
                 <Card
                     hoverable
                     style={{ margin: '14px 0px' }}
@@ -57,6 +58,7 @@ class Course extends React.Component {
                         </tbody>
                     </table>
                 </Card>
+                
             </div>
         );
     }

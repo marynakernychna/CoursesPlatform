@@ -39,7 +39,7 @@ class Alerts extends React.Component {
                         showIcon
                         action={
                             <Button size="small" danger
-                                onClick={this.closeAlert}
+                                onClick={() => this.closeAlert()}
                             >
                                 Close
                             </Button>
@@ -54,7 +54,7 @@ class Alerts extends React.Component {
                         banner
                         action={
                             <Button size="small" danger
-                                onClick={this.closeAlert}
+                                onClick={() => this.closeAlert()}
                             >
                                 Close
                             </Button>
