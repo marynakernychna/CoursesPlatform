@@ -16,8 +16,6 @@ namespace CoursesPlatform.Models.Users
 
         public bool IsEmailConfirmed { get; set; }
 
-        public int SubscriptionsCount { get; set; }
-
         public List<CourseDTO> Subscriptions { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
+using CoursesPlatform.Models.Courses;
 using CoursesPlatform.Models.Users;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace CoursesPlatform.Interfaces
     {
         #region get
 
-        Task<List<StudentDTO>> GetStudents();
+        //Task<List<StudentDTO>> GetStudents();
 
         string GetUserIdByEmail(string email);
 
@@ -20,6 +21,8 @@ namespace CoursesPlatform.Interfaces
         User GetUserByEmail(string email);
 
         UserDTO GetProfileInfo(string userId);
+
+        Task<StudentsOnPage> GetStudentsOnPage(StudentsOnPageRequest request);
 
         #endregion
 
@@ -33,9 +36,13 @@ namespace CoursesPlatform.Interfaces
 
         #region check
 
-        bool CheckIfUserExistsByEmail(string email);
+        bool CheckIsUserExistsByEmail(string email);
 
         #endregion
+
+        Task<StudentsOnPage> SearchByText(SearchStudentsRequest request);
+
+        void EdiProfile(EditProfileRequest newInfo, User currentInfo);
 
     }
 }

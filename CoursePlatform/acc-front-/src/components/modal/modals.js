@@ -6,6 +6,7 @@ import Edit from './editCourse/index';
 import Remove from './removeCourse/index';
 import EditStudent from './editStudent/index';
 import RemoveStudent from './removeStudent/index';
+import EditProfile from './editProfile/index';
 
 class Modals extends React.Component {
 
@@ -43,6 +44,9 @@ class Modals extends React.Component {
             }
             case modalsTypes.REMOVE_STUDENT: {
                 return <RemoveStudent info={this.state.modalInfo.info} />
+            }
+            case modalsTypes.EDIT_PROFILE: {
+                return <EditProfile info={this.state.modalInfo.info} />
             }
         }
     }

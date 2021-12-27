@@ -7,6 +7,10 @@ using CoursesPlatform.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.Models.Users;
 using CoursesPlatform.EntityFramework.Models;
+using CoursesPlatform.Models.Courses;
+using System;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace CoursesPlatform.Controllers
 {
@@ -32,10 +36,10 @@ namespace CoursesPlatform.Controllers
         }
 
         [Authorize(Roles = "Administrator")]
-        [HttpGet("GetStudents")]
-        public async Task<IActionResult> GetStudents()
+        [HttpPost("GetStudentsOnPage")]
+        public async Task<IActionResult> GetStudentsOnPage(StudentsOnPageRequest request)
         {
-            var students = await userService.GetStudents();
+            var students = await userService.GetStudentsOnPage(request);
 
             return Ok(students);
         }
@@ -65,9 +69,12 @@ namespace CoursesPlatform.Controllers
 
             userService.EditUser(request.User, user);
 
-            await emailService.SendEmailChangingNotificationEmail(user, oldInfo);
+            await emailService.SendUserInfoChangingNotificationEmail(user, oldInfo);
 
-            await emailService.SendConfirmationEmail(this.Request, user);
+            if (oldInfo.Email != user.Email)
+            {
+                await emailService.SendConfirmationEmail(this.Request, user);
+            }
 
             return Ok();
         }
@@ -103,6 +110,49 @@ namespace CoursesPlatform.Controllers
             var profileInfo = userService.GetProfileInfo(userId);
 
             return Ok(profileInfo);
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost("SearchText")]
+        public async Task<IActionResult> SearchText(SearchStudentsRequest request)
+        {
+            var result = await userService.SearchByText(request);
+
+            return Ok(result);
+        }
+
+        [HttpPost("EditProfileInfo")]
+        public async Task<IActionResult> EditProfileInfo(EditProfileRequest request)
+        {
+            var user = userService.GetUserByEmail(request.CurrentEmail);
+
+            if (user.Name == request.Name &&
+                user.Surname == request.Surname &&
+                user.Email == request.Email &&
+                (string.IsNullOrEmpty(request.Birthday) ||
+                string.IsNullOrWhiteSpace(request.Birthday) || 
+                Convert.ToDateTime(request.Birthday) == user.Birthday))
+            {
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "The new information is the same as the previous one !" });
+            }
+
+            var oldInfo = new UserDTO
+            {
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                Birthday = user.Birthday
+            };
+
+            userService.EdiProfile(request, user);
+
+            await emailService.SendUserInfoChangingNotificationEmail(user, oldInfo);
+
+            if (oldInfo.Email != user.Email)
+            {
+                await emailService.SendConfirmationEmail(this.Request, user);
+            }
+            return Ok();
         }
 
         public string IpAddress()

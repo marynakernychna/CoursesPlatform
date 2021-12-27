@@ -26,7 +26,7 @@ class AllCourses extends React.Component {
     }
 
     componentDidMount() {
-
+        
         document.title = "Courses";
 
         var model = this.formRequestModel();

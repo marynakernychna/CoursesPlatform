@@ -1,5 +1,5 @@
 import styles from '../styles.module.css';
-import { Form, Input, Button, InputNumber, Alert, DatePicker, Space } from 'antd';
+import { Form, Input, Button, Alert, DatePicker } from 'antd';
 import React from 'react';
 import authService from '../../../services/auth';
 import moment from 'moment';
@@ -36,7 +36,7 @@ class Registration extends React.Component {
                 finishLoading();
             },
                 err => {
-
+                    
                     this.setWarning(err.response.data.errors);
                 })
             .catch(() => {
@@ -161,7 +161,8 @@ class Registration extends React.Component {
                         ]}
                     >
                         <DatePicker format={this.state.dateFormat}
-                            disabledDate={this.setDisabledDate} />
+                            disabledDate={this.setDisabledDate}
+                            placeholder="Your birhday" />
 
                     </Form.Item>
 

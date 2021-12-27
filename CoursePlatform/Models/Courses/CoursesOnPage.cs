@@ -7,6 +7,6 @@ namespace CoursesPlatform.Models.Courses
     {
         public int TotalCount { get; set; }
 
-        public List<Course> courses { get; set; }
+        public List<Course> Courses { get; set; }
     }
 }

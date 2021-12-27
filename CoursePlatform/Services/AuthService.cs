@@ -64,7 +64,7 @@ namespace CoursesPlatform.Services
             appDbContext.SaveChanges();
         }
 
-        public User FormNewUser(RegisterRequest request)
+        public User CreateNewUserModel(RegisterRequest request)
         {
             return new User
             {
@@ -73,7 +73,7 @@ namespace CoursesPlatform.Services
                 Birthday = request.Birthday,
                 Surname = request.Surname,
                 Name = request.Name,
-                RegisteredDate = DateTime.UtcNow
+                RegisteredDate = DateTime.Now
             };
         }
 

@@ -1,4 +1,5 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
+using CoursesPlatform.Models.Courses;
 using CoursesPlatform.Models.Users;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,7 @@ namespace CoursesPlatform.Interfaces.Commands
         void DeleteUserSubscribes(string userId);
 
         #endregion
+
+        List<StudentDTO> GetStudentsOnPage(StudentsOnPageRequest request, IQueryable<User> students);
     }
 }

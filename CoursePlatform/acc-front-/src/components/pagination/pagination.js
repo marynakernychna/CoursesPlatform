@@ -11,7 +11,7 @@ class PagePagination extends React.Component {
             elementsOnPage: this.props.elementsOnPage
         };
     }
-    
+
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
         return {

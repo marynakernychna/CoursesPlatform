@@ -49,7 +49,7 @@ namespace CoursesPlatform.Services
             return new CoursesOnPage
             {
                 TotalCount = totalCount,
-                courses = coursesCommands.GetCoursesOnPage(request, sortedCourses)
+                Courses = coursesCommands.GetCoursesOnPage(request, sortedCourses)
             };
         }
 
@@ -150,12 +150,12 @@ namespace CoursesPlatform.Services
 
         #region check
 
-        public bool CheckIfCourseExistsById(int courseId)
+        public bool CheckIsCourseExistsById(int courseId)
         {
             return appDbContext.Courses.FirstOrDefault(c => c.Id == courseId) != null;
         }
 
-        public bool CheckIfSubscriptionExists(int courseId, string userId)
+        public bool CheckIsSubscriptionExists(int courseId, string userId)
         {
             return appDbContext.UsersSubscriptions
                                .FirstOrDefault(s => s.CourseId == courseId && s.UserId == userId) != null;
@@ -211,7 +211,7 @@ namespace CoursesPlatform.Services
 
         #region form
 
-        public UserSubscriptions FormNewSubscription(DateTime startDate, User user, Course course)
+        public UserSubscriptions CreateNewSubscriptionModel(DateTime startDate, User user, Course course)
         {
             return new UserSubscriptions()
             {

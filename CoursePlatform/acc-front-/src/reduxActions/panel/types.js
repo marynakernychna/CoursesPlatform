@@ -21,3 +21,7 @@ export const SET_STUDENTS = "SET_STUDENTS";
 
 export const REMOVE_COURSE = "REMOVE_COURSE";
 export const REMOVE_STUDENT = "REMOVE_STUDENT";
+
+export const SET_PROFILE_INFO = "SET_PROFILE_INFO";
+export const SET_DATE = "SET_DATE";
+

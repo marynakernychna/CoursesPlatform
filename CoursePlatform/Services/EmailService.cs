@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Services
@@ -58,17 +59,17 @@ namespace CoursesPlatform.Services
             await SendEmail(user.Email, "Change of course information", message);
         }
 
-        public async Task SendEmailChangingNotificationEmail(User newInfo, UserDTO oldInfo)
+        public async Task SendUserInfoChangingNotificationEmail(User newInfo, UserDTO oldInfo)
         {
-            var message = await templateHelper.GetTemplateHtmlAsStringAsync<EmailChangingEmail>(
-            "EmailChangingEmail",
-            new EmailChangingEmail
+            var message = await templateHelper.GetTemplateHtmlAsStringAsync<UserInfoChangingEmail>(
+            "UserInfoChangingEmail",
+            new UserInfoChangingEmail
             {
                OldInfo = oldInfo,
                NewInfo = newInfo
             });
 
-            await SendEmail(oldInfo.Email, "Email address changing", message);
+            await SendEmail(oldInfo.Email, "Profile info was changed", message);
         }
 
         public async Task SendCourseRemovalNotificationEmail(string courseTitle, User user)
@@ -87,9 +88,9 @@ namespace CoursesPlatform.Services
 
         public async Task SendEmail(string email, string subject, string message)
         {
-            var apiKey = "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";
+            var apiKey = "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";
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("kernychnamaryna@gmail.com", "no-reply");
+            var from = new EmailAddress("markkernychny@gmail.com", "no-reply");
             var to = new EmailAddress(email, email);
             var plainTextContent = "";
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, message);

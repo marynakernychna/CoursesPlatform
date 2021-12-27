@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CoursesPlatform.EntityFramework;
 using CoursesPlatform.EntityFramework.Models;
+using System;
 
 namespace CoursesPlatform.Services
 {
@@ -17,33 +18,34 @@ namespace CoursesPlatform.Services
         private readonly AppDbContext appDbContext;
         private readonly UserManager<User> userManager;
         private readonly IUsersCommands usersCommands;
-        private readonly IJwtUtils jwtUtils;
-        private readonly IEmailService emailService;
-        //private readonly AppSettings appSettings;
 
         public UserService(AppDbContext appDbContext,
                            UserManager<User> userManager,
-                           IUsersCommands usersCommands,
-                           IJwtUtils jwtUtils,
-                           IEmailService emailService
-                           //AppSettings appSettings
-                           )
+                           IUsersCommands usersCommands)
         {
             this.appDbContext = appDbContext;
             this.userManager = userManager;
             this.usersCommands = usersCommands;
-            this.jwtUtils = jwtUtils;
-            this.emailService = emailService;
-            //this.appSettings = appSettings;
         }
 
         #region get
 
-        public async Task<List<StudentDTO>> GetStudents()
+        public async Task<IList<User>> GetStudents()
         {
-            var students = await userManager.GetUsersInRoleAsync("Student");
+            return await userManager.GetUsersInRoleAsync("Student");
+        }
 
-            return usersCommands.FormStudentsList(students.AsQueryable());
+        public async Task<StudentsOnPage> GetStudentsOnPage(StudentsOnPageRequest request)
+        {
+            var students = await GetStudents();
+
+            int totalCount = students.Count();
+
+            return new StudentsOnPage
+            {
+                TotalCount = totalCount,
+                Students = usersCommands.GetStudentsOnPage(request, students.AsQueryable())
+            };
         }
 
         public string GetUserIdByEmail(string email)
@@ -102,22 +104,23 @@ namespace CoursesPlatform.Services
         {
             if (newInfo.Email != user.Email)
             {
-                bool isEmailBusy = CheckIfUserExistsByEmail(newInfo.Email);
+                bool isEmailBusy = CheckIsUserExistsByEmail(newInfo.Email);
 
                 if (isEmailBusy)
                 {
                     throw new RestException(HttpStatusCode.BadRequest, new { Message = "There is already a user with this email !" });
                 }
+
+                user.Email = newInfo.Email;
+                user.UserName = newInfo.Email;
+                user.NormalizedEmail = newInfo.Email.ToUpper();
+                user.NormalizedUserName = newInfo.Email.ToUpper();
+                user.EmailConfirmed = false;
             }
 
             user.Name = newInfo.Name;
             user.Surname = newInfo.Surname;
             user.Birthday = newInfo.Birthday;
-            user.Email = newInfo.Email;
-            user.UserName = newInfo.Email;
-            user.NormalizedEmail = newInfo.Email.ToUpper();
-            user.NormalizedUserName = newInfo.Email.ToUpper();
-            user.EmailConfirmed = false;
 
             appDbContext.SaveChanges();
         }
@@ -135,7 +138,7 @@ namespace CoursesPlatform.Services
 
         #region check
 
-        public bool CheckIfUserExistsByEmail(string email)
+        public bool CheckIsUserExistsByEmail(string email)
         {
             return appDbContext.Users.FirstOrDefault(u => u.Email == email) != null;
         }
@@ -144,6 +147,53 @@ namespace CoursesPlatform.Services
 
         #region not labeled
 
+        public async Task<StudentsOnPage> SearchByText(SearchStudentsRequest request)
+        {
+            var students = await GetStudents();
+
+            var searchResult = students.Where(u => u.Name.Contains(request.SearchText) ||
+                                                   u.Surname.Contains(request.SearchText) ||
+                                                   u.Email.Contains(request.SearchText))
+                                                   .ToList();
+
+            int totalCount = searchResult.Count();
+
+            return new StudentsOnPage
+            {
+                TotalCount = totalCount,
+                Students = usersCommands.GetStudentsOnPage(request.StudentsOnPageRequest, searchResult.AsQueryable())
+            };
+        }
+
+        public void EdiProfile(EditProfileRequest newInfo, User user)
+        {
+            if (newInfo.Email != user.Email)
+            {
+                bool isEmailBusy = CheckIsUserExistsByEmail(newInfo.Email);
+
+                if (isEmailBusy)
+                {
+                    throw new RestException(HttpStatusCode.BadRequest, new { Message = "There is already a user with this email !" });
+                }
+
+                user.Email = newInfo.Email;
+                user.UserName = newInfo.Email;
+                user.NormalizedEmail = newInfo.Email.ToUpper();
+                user.NormalizedUserName = newInfo.Email.ToUpper();
+                user.EmailConfirmed = false;
+            }
+
+            user.Name = newInfo.Name;
+            user.Surname = newInfo.Surname;
+
+            if (!string.IsNullOrEmpty(newInfo.Birthday) &&
+                !string.IsNullOrWhiteSpace(newInfo.Birthday))
+            {
+                user.Birthday = Convert.ToDateTime(newInfo.Birthday);
+            }
+
+            appDbContext.SaveChanges();
+        }
 
         #endregion
     }

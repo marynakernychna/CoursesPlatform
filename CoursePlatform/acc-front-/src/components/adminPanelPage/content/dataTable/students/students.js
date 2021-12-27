@@ -1,10 +1,14 @@
 import React from 'react';
-import {  Button, Space, Table } from 'antd';
+import { Button, Space, Table, Input } from 'antd';
 import { FormOutlined, CloseOutlined } from '@ant-design/icons';
 import usersService from '../../../../../services/students';
 import { modalsTypes } from '../../../../modal/modalsTypes';
 import { alertTypes } from '../../../../alert/types';
+import PagePagination from "../../../../pagination/index";
 import moment from 'moment';
+import ElementsOnPage from '../../../../elementsOnPage/index';
+
+const { Search } = Input;
 
 class Students extends React.Component {
 
@@ -12,53 +16,102 @@ class Students extends React.Component {
         super(props);
         this.state = {
             students: [],
-            dateFormat: "YYYY-MM-DD"
+            dateFormat: "YYYY-MM-DD",
+
+            elementsOnPage: this.props.elementsOnPage,
+            currentPage: this.props.currentPage,
+            isSortingChanged: this.props.isSortingChanged,
+
+            searchText: ""
         };
     }
 
     componentDidMount() {
-
         document.title = "Students";
 
-        this.getStudents();
+        var model =
+        {
+            "pageNumber": this.state.currentPage,
+            "elementsOnPage": this.state.elementsOnPage
+        }
+
+        this.getStudents(model);
+    }
+
+    componentDidUpdate() {
+
+        if (this.state.isSortingChanged) {
+
+            var model;
+
+            if (this.state.searchText == "") {
+
+                model =
+                {
+                    "pageNumber": this.state.currentPage,
+                    "elementsOnPage": this.state.elementsOnPage
+                }
+
+                this.getStudents(model);
+            }
+            else {
+
+                this.onSearch(this.state.searchText);
+            }
+        }
     }
 
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
         return {
-            students: nextProps.data
+            students: nextProps.data,
+            isSortingChanged: nextProps.isSortingChanged,
+            currentPage: nextProps.currentPage,
+            elementsOnPage: nextProps.elementsOnPage
         }
     }
 
-    getStudents() {
+    getStudents(model) {
 
         const {
             startLoading,
             finishLoading,
-            setStudents
+            setStudents,
+            clearTotalCount,
+            resetIsSortChangedStatus,
+            setTotalCount
         } = this.props;
+
+        if (this.state.isSortingChanged) {
+            resetIsSortChangedStatus();
+
+            this.setState({
+                isSortingChanged: false
+            })
+        }
 
         startLoading();
 
-        usersService.getStudents()
+        usersService.getStudents(model)
             .then((response) => {
 
                 var studentKey = 0;
-                
-                response.data.map((info, index) => {
-                    
+
+                response.data.students.map((info, index) => {
+
                     info.key = studentKey;
                     info.isEmailConfirmed = info.isEmailConfirmed.toString();
+                    info.subscriptionsCount = info.subscriptions.length;
                     info.age = parseInt(moment.duration(moment().diff(new Date(info.birthday))).asYears(), 10);
 
                     if (info.age < 14) {
-                        info.age = "———"
+                        info.age = -1
                     };
 
                     var subscriptionKey = 1;
 
                     info.subscriptions.map((course, index) => {
-                    
+
                         course.key = subscriptionKey;
                         subscriptionKey = subscriptionKey + 1;
                     })
@@ -66,14 +119,17 @@ class Students extends React.Component {
                     studentKey = studentKey + 1;
                 })
 
-                setStudents(response.data);
+                setStudents(response.data.students);
+                setTotalCount(response.data.totalCount);
             },
                 err => {
-                    console.log(err);
+
+                    clearTotalCount();
                     this.setWarningAlert();
                 })
             .catch(err => {
-                
+
+                clearTotalCount();
                 this.setWarningAlert();
             })
             .finally(() => {
@@ -103,6 +159,106 @@ class Students extends React.Component {
         } = this.props;
 
         openModal({ type: type, info: record });
+    }
+
+    onSearch = (searchText) => {
+
+        if (searchText == "") {
+            return;
+        }
+
+        this.setState({
+            searchText: searchText
+        });
+
+        const {
+            startLoading,
+            finishLoading,
+            setStudents,
+            clearTotalCount,
+            resetIsSortChangedStatus,
+            setTotalCount
+        } = this.props;
+
+        if (this.state.isSortingChanged) {
+            resetIsSortChangedStatus();
+
+            this.setState({
+                isSortingChanged: false
+            })
+        }
+
+        startLoading();
+
+        var model = {
+            "searchText": searchText,
+            "studentsOnPageRequest": {
+                "pageNumber": this.state.currentPage,
+                "elementsOnPage": this.state.elementsOnPage
+            }
+        }
+
+        usersService.searchByText(model)
+            .then((response) => {
+
+                var studentKey = 0;
+
+                response.data.students.map((info, index) => {
+
+                    info.key = studentKey;
+                    info.isEmailConfirmed = info.isEmailConfirmed.toString();
+                    info.subscriptionsCount = info.subscriptions.length;
+                    info.age = parseInt(moment.duration(moment().diff(new Date(info.birthday))).asYears(), 10);
+
+                    if (info.age < 14) {
+                        info.age = -1
+                    };
+
+                    var subscriptionKey = 1;
+
+                    info.subscriptions.map((course, index) => {
+
+                        course.key = subscriptionKey;
+                        subscriptionKey = subscriptionKey + 1;
+                    })
+
+                    studentKey = studentKey + 1;
+                })
+
+                setStudents(response.data.students);
+                setTotalCount(response.data.totalCount);
+            },
+                err => {
+
+                    clearTotalCount();
+                    this.setWarningAlert();
+                })
+            .catch(err => {
+
+                clearTotalCount();
+                this.setWarningAlert();
+            })
+            .finally(() => {
+                finishLoading();
+            });
+    }
+
+    onClearSearch = (e) => {
+
+        if (e.target.value == "") {
+
+            this.setState({
+                searchText: ""
+            });
+
+            var model =
+            {
+                "pageNumber": this.state.currentPage,
+                "elementsOnPage": this.state.elementsOnPage
+            }
+
+            this.getStudents(model);
+        }
     }
 
     render() {
@@ -201,18 +357,32 @@ class Students extends React.Component {
         };
 
         return (
+            <>
 
-            <Table
-                {...tableProps}
-                columns={columns}
-                pagination={{
-                    position: ['topCenter', 'bottomCenter'],
-                    defaultPageSize: 10,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['10', '20', '30'],
-                }}
-                dataSource={this.state.students}
-            />
+                <Search
+                    placeholder="input search text"
+                    allowClear
+                    enterButton="Search"
+                    size="large"
+                    onChange={this.onClearSearch}
+                    onSearch={this.onSearch}
+                    style={{ "marginBottom": "20px" }}
+                />
+
+                <ElementsOnPage />
+
+                <PagePagination />
+
+                <Table
+                    {...tableProps}
+                    columns={columns}
+                    dataSource={this.state.students}
+                    pagination={false}
+                    style={{ "marginTop": "20px" }}
+                />
+
+                <PagePagination />
+            </>
         );
     }
 }

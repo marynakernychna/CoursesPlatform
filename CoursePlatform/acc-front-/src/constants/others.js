@@ -1,0 +1,1 @@
+export const loginViaFacebook = "information is missing because you are logged in via Facebook";

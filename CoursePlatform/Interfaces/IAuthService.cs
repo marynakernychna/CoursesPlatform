@@ -12,7 +12,7 @@ namespace CoursesPlatform.Interfaces
 
         Task RegisterUser(User user, string password);
 
-        User FormNewUser(RegisterRequest request);
+        User CreateNewUserModel(RegisterRequest request);
 		
 		Task<FacebookAccount> GetUserFromFacebookAsync(string facebookToken);
     }

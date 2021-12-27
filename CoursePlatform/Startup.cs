@@ -107,6 +107,8 @@ namespace CoursesPlatform
             services.AddTransient<IValidator<EmailConfirmationRequest>, EmailConfirmationRequestValidator>();
 
             services.AddTransient<IValidator<FilterQuery>, FilterQueryValidator>();
+            services.AddTransient<IValidator<StudentsOnPageRequest>, StudentsOnPageRequestValidator>();
+            services.AddTransient<IValidator<SearchStudentsRequest>, SearchStudentsRequestValidator>();
             services.AddTransient<IValidator<AddCourseRequest>, AddCourseRequestValidator>();
             services.AddTransient<IValidator<CourseDTO>, CourseDTOValidator>();
 
@@ -116,7 +118,8 @@ namespace CoursesPlatform
 
             services.AddTransient<IValidator<UserDTO>, UserDTOValidator>();
             services.AddTransient<IValidator<EditUserRequest>, EditUserRequestValidator>();
-
+            services.AddTransient<IValidator<EditProfileRequest>, EditProfileRequestValidator>();
+            
             services.AddTransient<IValidator<StringRequest>, StringRequestValidator>();
             services.AddTransient<IValidator<TokenRequest>, TokenRequestValidator>();
             ///

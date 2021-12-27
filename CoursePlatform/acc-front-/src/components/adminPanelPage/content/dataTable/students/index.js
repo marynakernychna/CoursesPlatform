@@ -7,12 +7,20 @@ import {
     finishLoading,
     setAlert
 } from '../../../../../reduxActions/general';
-import { setStudents } from '../../../../../reduxActions/panel/index';
+import {
+    setStudents,
+    clearTotalCount,
+    setTotalCount,
+    resetIsSortChangedStatus
+} from '../../../../../reduxActions/panel/index';
 
 const mapState = (stateRedux) => {
     return {
         loading: stateRedux.generalReducer.loading,
-        data: stateRedux.panelReducer.data
+        data: stateRedux.panelReducer.data,
+        elementsOnPage: stateRedux.panelReducer.elementsOnPage,
+        currentPage: stateRedux.panelReducer.currentPage,
+        isSortingChanged: stateRedux.panelReducer.isSortingChanged
     }
 }
 const mapDispatchToProps = {
@@ -20,7 +28,10 @@ const mapDispatchToProps = {
     startLoading,
     finishLoading,
     setAlert,
-    setStudents
+    setStudents,
+    clearTotalCount,
+    setTotalCount,
+    resetIsSortChangedStatus
 }
 
 export default withRouter(connect(mapState, mapDispatchToProps)(Students));

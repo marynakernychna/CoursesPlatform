@@ -16,7 +16,7 @@ namespace CoursesPlatform.Interfaces
 
         Task SendEmail(string email, string subject, string message);
 
-        Task SendEmailChangingNotificationEmail(User newInfo, UserDTO oldInfo);
+        Task SendUserInfoChangingNotificationEmail(User newInfo, UserDTO oldInfo);
 
         Task SendAccountRemovalNotificationEmail(UserDTO user);
     }

@@ -14,8 +14,8 @@ axios.interceptors.request.use((config) => {
 
 export default class usersService {
 
-    static getStudents() {
-        return axios.get(URL + 'GetStudents');
+    static getStudents(model) {
+        return axios.post(URL + 'GetStudentsOnPage', model);
     }
 
     static editUser(model) {
@@ -24,5 +24,17 @@ export default class usersService {
 
     static removeUser(model) {
         return axios.post(URL + 'DeleteUser', model);
+    }
+
+    static getProfileInfo() {
+        return axios.get(URL + 'GetProfileInfo');
+    }
+
+    static searchByText(model) {
+        return axios.post(URL + 'SearchText', model);
+    }
+    
+    static editProfileInfo(model) {
+        return axios.post(URL + 'EditProfileInfo', model);
     }
 }

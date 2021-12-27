@@ -33,9 +33,9 @@ namespace CoursesPlatform.Interfaces
 
         #region check
 
-        bool CheckIfCourseExistsById(int courseId);
+        bool CheckIsCourseExistsById(int courseId);
 
-        bool CheckIfSubscriptionExists(int courseId, string userId);
+        bool CheckIsSubscriptionExists(int courseId, string userId);
 
         #endregion
 
@@ -55,7 +55,7 @@ namespace CoursesPlatform.Interfaces
 
         #region form
 
-        UserSubscriptions FormNewSubscription(DateTime startDate, User user, Course course);
+        UserSubscriptions CreateNewSubscriptionModel(DateTime startDate, User user, Course course);
 
         #endregion
     }

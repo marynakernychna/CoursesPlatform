@@ -4,7 +4,7 @@ import { alertTypes } from '../../alert/types';
 import Subscription from './subscription/index';
 import PagePagination from '../../pagination/index';
 import SortMenu from '../../sortMenu/index';
-import { Layout } from 'antd';
+import { Layout, Result } from 'antd';
 
 const { Content } = Layout;
 
@@ -144,16 +144,24 @@ class Subscriptions extends React.Component {
                     minHeight: 280
                 }}
             >
-                <SortMenu />
+                {this.state.subscriptions.length != 0 ?
+                    <>
+                        <SortMenu />
 
-                <div>
-                    {this.state.subscriptions.map((course, index) =>
-                        <Subscription info={course} />
-                    )}
-                </div>
+                        <div>
+                            {this.state.subscriptions.map((course, index) =>
+                                <Subscription info={course} />
+                            )}
+                        </div>
 
-                <PagePagination />
+                        <PagePagination />
 
+                    </>
+                    :
+                    <Result
+                        title="You have not yet enrolled in any course"
+                    />
+                }
             </Content>
         );
     }

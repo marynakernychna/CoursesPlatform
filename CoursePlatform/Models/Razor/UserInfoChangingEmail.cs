@@ -3,7 +3,7 @@ using CoursesPlatform.Models.Users;
 
 namespace CoursesPlatform.Models.Razor
 {
-    public class EmailChangingEmail
+    public class UserInfoChangingEmail
     {
         public User NewInfo { get; set; }
 

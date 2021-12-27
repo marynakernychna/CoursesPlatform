@@ -56,9 +56,8 @@ class Courses extends React.Component {
                 setCourses(response.data);
             },
                 err => {
-console.log(err);
-                    this.setWarningAlert();
 
+                    this.setWarningAlert();
                 })
             .catch(err => {
 

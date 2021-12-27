@@ -44,20 +44,20 @@ namespace CoursesPlatform.Controllers
         [HttpPost("LogIn")]
         public async Task<IActionResult> LogIn(AuthenticateRequest request)
         {
-            User user = userService.GetUserByEmail(request.Email);
+            var user = userService.GetUserByEmail(request.Email);
 
             await authService.SignInAsync(user, request.Password, false);
 
             if (!user.EmailConfirmed)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Email is not confirmed !" });
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Email is not confirmed!" });
             }
 
-            string accessToken = jwtUtils.GenerateAccessToken(user);
+            var accessToken = jwtUtils.GenerateAccessToken(user);
 
-            bool isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
+            var isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
 
-            string refreshToken;
+            string refreshToken = null;
 
             if (isRefreshTokenActive)
             {
@@ -65,7 +65,7 @@ namespace CoursesPlatform.Controllers
             }
             else
             {
-                RefreshToken newRefreshToken = jwtUtils.GenerateRefreshToken(IpAddress());
+                var newRefreshToken = jwtUtils.GenerateRefreshToken(IpAddress());
 
                 jwtUtils.SaveRefreshToken(newRefreshToken, user);
 
@@ -79,13 +79,13 @@ namespace CoursesPlatform.Controllers
         [HttpPost("RefreshAccessToken")]
         public IActionResult RefreshAccessToken(TokenRequest request)
         {
-            User user = jwtUtils.GetUserByRefreshToken(request.Token);
+            var user = jwtUtils.GetUserByRefreshToken(request.Token);
 
-            bool isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
+            var isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
 
             if (!isRefreshTokenActive)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid refresh token !" });
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid refresh token!" });
             }
 
             var accessToken = jwtUtils.GenerateAccessToken(user);
@@ -97,18 +97,18 @@ namespace CoursesPlatform.Controllers
         [HttpPost("RegisterUser")]
         public async Task<IActionResult> RegisterUser(RegisterRequest request)
         {
-            bool isEmailExists = userService.CheckIfUserExistsByEmail(request.Email);
+            var isEmailExists = userService.CheckIsUserExistsByEmail(request.Email);
 
             if (isEmailExists)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "There is already a user with this email !" });
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "There is already a user with this email!" });
             }
 
-            User user = authService.FormNewUser(request);
+            var user = authService.CreateNewUserModel(request);
 
             await authService.RegisterUser(user, request.Password);
 
-            await emailService.SendConfirmationEmail(this.Request, user);
+            await emailService.SendConfirmationEmail(Request, user);
 
             return Ok();
         }
@@ -119,7 +119,7 @@ namespace CoursesPlatform.Controllers
         {
             var facebookUser = await authService.GetUserFromFacebookAsync(facebookToken.Value);
 
-            bool isEmailExists = userService.CheckIfUserExistsByEmail(facebookUser.Email);
+            var isEmailExists = userService.CheckIsUserExistsByEmail(facebookUser.Email);
 
             if (!isEmailExists)
             {
@@ -127,25 +127,25 @@ namespace CoursesPlatform.Controllers
                 var password = new string(Enumerable.Repeat(chars, 10)
                                                      .Select(s => s[random.Next(s.Length)]).ToArray());
 
-                User newUser = authService.FormNewUser(new RegisterRequest
+                User newUser = authService.CreateNewUserModel(new RegisterRequest
                 {
                     Name = facebookUser.FirstName,
                     Surname = facebookUser.LastName,
                     Email = facebookUser.Email,
-                    Birthday = DateTime.Now,
+                    Birthday = DateTime.UtcNow,
                     Password = password
                 });
 
                 await authService.RegisterUser(newUser, password);
             }
 
-            User user = userService.GetUserByEmail(facebookUser.Email);
+            var user = userService.GetUserByEmail(facebookUser.Email);
 
-            string accessToken = jwtUtils.GenerateAccessToken(user);
+            var accessToken = jwtUtils.GenerateAccessToken(user);
 
-            bool isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
+            var isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
 
-            string refreshToken;
+            string refreshToken = null;
 
             if (isRefreshTokenActive)
             {
@@ -153,11 +153,11 @@ namespace CoursesPlatform.Controllers
             }
             else
             {
-                RefreshToken newRefreshToken = jwtUtils.GenerateRefreshToken(IpAddress());
+                var newRefreshToken = jwtUtils.GenerateRefreshToken(IpAddress());
 
                 jwtUtils.SaveRefreshToken(newRefreshToken, user);
 
-                refreshToken = newRefreshToken.Token;
+                var = newRefreshToken.Token;
             }
 
             return Ok(new { accessToken = accessToken, refreshToken = refreshToken });
@@ -167,14 +167,14 @@ namespace CoursesPlatform.Controllers
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(EmailConfirmationRequest request)
         {
-            bool isUserExists = userService.CheckIfUserExistsByEmail(request.Email);
+            var isUserExists = userService.CheckIsUserExistsByEmail(request.Email);
 
             if (!isUserExists)
             {
                 throw new RestException(HttpStatusCode.BadRequest, new { Message = "Incorrect email !" });
             }
 
-            User user = userService.GetUserByEmail(request.Email);
+            var user = userService.GetUserByEmail(request.Email);
 
             await userManager.ConfirmEmailAsync(user, request.Token);
 

@@ -131,6 +131,6 @@ D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\AccountRe
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\ConfirmationEmail.cshtml.g.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseEditingEmail.cshtml.g.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseRemovalEmail.cshtml.g.cs
-D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\EmailChangingEmail.cshtml.g.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorTargetAssemblyInfo.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.Views.pdb
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\UserInfoChangingEmail.cshtml.g.cs

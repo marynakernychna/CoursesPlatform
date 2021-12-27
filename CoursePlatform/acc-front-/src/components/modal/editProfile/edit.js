@@ -1,12 +1,13 @@
 import React from 'react';
-import { Modal, Form, Button, Input } from 'antd';
+import { Modal, Form, Button, Input, DatePicker } from 'antd';
 import usersService from '../../../services/students';
-import authService from '../../../services/auth';
 import { alertTypes } from '../../alert/types';
+import moment from 'moment';
+import { loginViaFacebook } from '../../../constants/others';
 
 const { TextArea } = Input;
 
-class EditStudent extends React.Component {
+class EditProfile extends React.Component {
 
     constructor(props) {
         super(props);
@@ -37,36 +38,42 @@ class EditStudent extends React.Component {
         closeModal();
     };
 
-    editStudent = (info) => {
+    editProfile = (newData) => {
 
         const {
             startLoading,
             finishLoading,
             setAlert,
-            updateTableData
+            logOut,
+            setProfileInfo,
+            setDate
         } = this.props;
 
         startLoading();
 
-        if (info.name === undefined) {
-            info.name = this.props.info.name;
+        if (newData.name === undefined) {
+            newData.name = this.props.info.name;
         }
-        if (info.surname === undefined) {
-            info.surname = this.props.info.surname;
+        if (newData.surname === undefined) {
+            newData.surname = this.props.info.surname;
         }
-        if (info.email === undefined) {
-            info.email = this.props.info.email;
+        if (newData.email === undefined) {
+            newData.email = this.props.info.email;
+        }
+        if (newData.date === undefined) {
+            newData.date = this.props.info.birthday;
         }
 
-        if (info.name == this.props.info.name &&
-            info.surname == this.props.info.surname &&
-            info.email == this.props.info.email) {
+        if (newData.name == this.props.info.name &&
+            newData.surname == this.props.info.surname &&
+            newData.email == this.props.info.email &&
+            newData.date == this.props.info.birthday) {
 
             this.closeModal();
 
             setAlert({
                 type: alertTypes.INFO,
-                message: "You have successfully edited the student !"
+                message: "You have successfully edited the student __!"
             });
 
             finishLoading();
@@ -74,35 +81,60 @@ class EditStudent extends React.Component {
             return;
         }
 
-        info['id'] = this.props.info.id;
+        var request;
 
-        var request = {
-            user: {
-                name: info.name,
-                surname: info.surname,
-                email: info.email,
-                birthday: this.props.info.birthday
-            },
-            currentUserEmail: this.props.info.email
+        if (newData.date !== loginViaFacebook) {
+            request = {
+                name: newData.name,
+                surname: newData.surname,
+                email: newData.email,
+                birthday: newData.date,
+                currentEmail: this.props.info.email
+            }
+        }
+        else {
+            request = {
+                name: newData.name,
+                surname: newData.surname,
+                email: newData.email,
+                currentEmail: this.props.info.email
+            }
         }
 
         this.closeModal();
-
-        usersService.editUser(request)
+console.log(request);
+        usersService.editProfileInfo(request)
             .then(() => {
 
-                updateTableData({ key: this.props.info.key, newData: info });
+                if (newData.email != this.props.info.email) {
+                    logOut();
+                }
+
+                setProfileInfo({
+                    name: newData.name,
+                    surname: newData.surname,
+                    email: newData.email
+                });
+
+                if (newData.date != undefined &&
+                    newData.date != loginViaFacebook) {
+                        
+                    setDate({
+                        date: newData.date
+                    });
+                }
+
                 setAlert({
                     type: alertTypes.INFO,
-                    message: "You have successfully edited the student !"
+                    message: "You have successfully edited your profile !"
                 });
             },
                 err => {
-
+console.log(err.response);
                     this.setWarningAlert(err.response);
                 })
             .catch(err => {
-
+                console.log(err);
                 this.setWarningAlert();
             })
             .finally(() => {
@@ -115,10 +147,11 @@ class EditStudent extends React.Component {
         const {
             setAlert
         } = this.props;
-        
+
         var model = {
             type: alertTypes.WARNING,
-            message: err.data.errors != undefined &&
+            message: err != undefined &&
+                err.data.errors != undefined &&
                 err.data.errors.Message != undefined ?
                 err.data.errors.Message :
                 "Something went wrong. Try again!"
@@ -130,14 +163,14 @@ class EditStudent extends React.Component {
     render() {
 
         return (
-            <Modal title="Edit the student"
+            <Modal title="Edit profile info"
                 visible={true}
                 onCancel={() => this.closeModal()}
                 afterClose={() => this.closeModal()}
                 okButtonProps={{ style: { display: 'none' } }}>
 
                 <Form {... this.state.layout} name="basic"
-                    onFinish={(values) => this.editStudent(values)}
+                    onFinish={(values) => this.editProfile(values)}
                     style={{ "textAlign": 'right' }}
                 >
 
@@ -165,6 +198,15 @@ class EditStudent extends React.Component {
                         />
                     </Form.Item>
 
+                    <Form.Item
+                        label="Enter new birthday :" name="date"
+                    >
+                        <DatePicker format={this.state.dateFormat}
+                            disabledDate={this.setDisabledDate}
+                            placeholder="Your birhday" />
+
+                    </Form.Item>
+
                     <Form.Item {... this.state.tailLayout}
                         style={{ "marginTop": '10px' }}>
                         <Button type="primary" htmlType="submit">Submit</Button>
@@ -177,4 +219,4 @@ class EditStudent extends React.Component {
     }
 }
 
-export default EditStudent;
+export default EditProfile;

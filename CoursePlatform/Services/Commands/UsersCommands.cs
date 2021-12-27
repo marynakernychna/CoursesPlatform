@@ -33,8 +33,7 @@ namespace CoursesPlatform.Services.Commands
                     Email = student.Email,
                     Birthday = student.Birthday,
                     IsEmailConfirmed = student.EmailConfirmed,
-                    Subscriptions = subscriptions,
-                    SubscriptionsCount = subscriptions.Count
+                    Subscriptions = subscriptions
                 });
             }
 
@@ -55,6 +54,16 @@ namespace CoursesPlatform.Services.Commands
             }
         }
 
+
         #endregion
+
+        public List<StudentDTO> GetStudentsOnPage(StudentsOnPageRequest request, IQueryable<User> students)
+        {
+            var studentsDtos = FormStudentsList(students);
+
+            return studentsDtos.Skip((request.PageNumber - 1) * request.ElementsOnPage)
+                               .Take(request.ElementsOnPage)
+                               .ToList();
+        }
     }
 }

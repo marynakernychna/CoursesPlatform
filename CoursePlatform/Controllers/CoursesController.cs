@@ -66,14 +66,14 @@ namespace CoursesPlatform.Controllers
         [HttpPut("EditCourse")]
         public async Task<IActionResult> EditCourse(CourseDTO request)
         {
-            bool isExists = courseService.CheckIfCourseExistsById(request.Id);
+            var isCourseExists = courseService.CheckIsCourseExistsById(request.Id);
 
-            if (!isExists)
+            if (!isCourseExists)
             {
                 throw new RestException(HttpStatusCode.BadRequest, new { Message = "Course not found !" });
             }
 
-            Course oldInfo = courseService.GetCourseById(request.Id);
+            var oldInfo = courseService.GetCourseById(request.Id);
 
             if (oldInfo.Title == request.Title &&
                 oldInfo.Description == request.Description &&
@@ -99,27 +99,20 @@ namespace CoursesPlatform.Controllers
         [HttpPost("EnrollInACourse")]
         public IActionResult EnrollInACourse(EnrollCourseRequest request)
         {
-            string userId = userAccessor.GetCurrentUserId();
+            var userId = userAccessor.GetCurrentUserId();
 
-            bool isExists = courseService.CheckIfCourseExistsById(request.CourseId);
+            var isSubscriptionExists = courseService.CheckIsSubscriptionExists(request.CourseId, userId);
 
-            if (!isExists)
-            {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Course not found !" });
-            }
-
-            isExists = courseService.CheckIfSubscriptionExists(request.CourseId, userId);
-
-            if (isExists)
+            if (isSubscriptionExists)
             {
                 throw new RestException(HttpStatusCode.BadRequest, new { Message = "Subscription already exists !" });
             }
 
-            User user = userService.GetUserById(userId);
-            Course course = courseService.GetCourseById(request.CourseId);
+            var user = userService.GetUserById(userId);
+            var course = courseService.GetCourseById(request.CourseId);
 
-            UserSubscriptions newSubscription = courseService
-                                                .FormNewSubscription(request.StartDate, user, course);
+            var newSubscription = courseService
+                                  .CreateNewSubscriptionModel(request.StartDate, user, course);
 
             courseService.AddNewSubscription(newSubscription);
 
@@ -129,11 +122,11 @@ namespace CoursesPlatform.Controllers
         [HttpPost("UnsubscribeFromCourse")]
         public IActionResult UnsubscribeFromCourse(UnsubscribeRequest request)
         {
-            string userId = userAccessor.GetCurrentUserId();
+            var userId = userAccessor.GetCurrentUserId();
 
-            bool isExists = courseService.CheckIfCourseExistsById(request.CourseId);
+            var isCourseExists = courseService.CheckIsCourseExistsById(request.CourseId);
 
-            if (!isExists)
+            if (!isCourseExists)
             {
                 throw new RestException(HttpStatusCode.BadRequest, new { Message = "Course not found !" });
             }

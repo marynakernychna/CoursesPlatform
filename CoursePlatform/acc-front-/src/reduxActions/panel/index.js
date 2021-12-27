@@ -1,5 +1,19 @@
 import * as types from "./types";
 
+export const setProfileInfo = (info) => {
+    return {
+        type: types.SET_PROFILE_INFO,
+        payload: info
+    };
+}
+
+export const setDate = (date) => {
+    return {
+        type: types.SET_DATE,
+        payload: date
+    };
+}
+
 export const changeSection = (sectionName) => {
     return {
         type: types.CHANGESECTION,

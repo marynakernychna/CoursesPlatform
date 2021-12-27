@@ -17,7 +17,9 @@ const intialState = {
     isSortingChanged: false,
     isElementsChanged: false,
 
-    data: []
+    data: [],
+    profileInfo: {},
+    date: undefined
 }
 
 const panelReducer = (state = intialState, action) => {
@@ -33,6 +35,22 @@ const panelReducer = (state = intialState, action) => {
                 currentPage: 1,
                 isSortingChanged: false,
                 isElementsChanged: false
+            }
+        }
+
+        case types.SET_PROFILE_INFO: {
+
+            return {
+                ...state,
+                profileInfo: action.payload
+            }
+        }
+
+        case types.SET_DATE: {
+
+            return {
+                ...state,
+                date: action.payload
             }
         }
 
@@ -171,7 +189,8 @@ const panelReducer = (state = intialState, action) => {
                 totalElementsCount: 0,
                 isSortingChanged: false,
                 isElementsChanged: false,
-                data: []
+                data: [],
+                profileInfo: undefined
             }
         }
 
