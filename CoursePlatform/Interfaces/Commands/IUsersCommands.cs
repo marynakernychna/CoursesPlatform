@@ -20,6 +20,6 @@ namespace CoursesPlatform.Interfaces.Commands
 
         #endregion
 
-        List<StudentDTO> GetStudentsOnPage(StudentsOnPageRequest request, IQueryable<User> students);
+        List<StudentDTO> GetStudentsOnPage(FilterQuery request, IQueryable<User> students);
     }
 }

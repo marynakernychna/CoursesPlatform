@@ -35,17 +35,112 @@ namespace CoursesPlatform.Services
             return await userManager.GetUsersInRoleAsync("Student");
         }
 
-        public async Task<StudentsOnPage> GetStudentsOnPage(StudentsOnPageRequest request)
+        public StudentsOnPage GetStudentsOnPage(StudentsOnPageRequest request)
         {
-            var students = await GetStudents();
+            var students = GetStudents().Result.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.SearchText) &&
+                !string.IsNullOrWhiteSpace(request.SearchText) &&
+                request.SearchBy.Count >= 1)
+            {
+                students = Search(request.SearchText, request.SearchBy, students);
+            }
 
             int totalCount = students.Count();
+
+            switch (request.FilterQuery.SortDirection)
+            {
+                case Models.Courses.FilterQuery.SortDirection_enum.ASC:
+                    switch (request.FilterQuery.SortBy)
+                    {
+                        case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
+                            {
+                                students = students.OrderBy(s => s.Surname);
+                            }
+                            break;
+                        case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
+                            {
+                                students = students.OrderBy(s => s.RegisteredDate);
+                            }
+                            break;
+                        case Models.Courses.FilterQuery.SortBy_enum.AGE:
+                            {
+                                students = students.OrderBy(s => s.Birthday);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortDirection_enum.DESC:
+                    switch (request.FilterQuery.SortBy)
+                    {
+                        case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
+                            {
+                                students = students.OrderByDescending(s => s.Surname);
+                            }
+                            break;
+                        case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
+                            {
+                                students = students.OrderByDescending(s => s.RegisteredDate);
+                            }
+                            break;
+                        case Models.Courses.FilterQuery.SortBy_enum.AGE:
+                            {
+                                students = students.OrderByDescending(s => s.Birthday);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
 
             return new StudentsOnPage
             {
                 TotalCount = totalCount,
-                Students = usersCommands.GetStudentsOnPage(request, students.AsQueryable())
+                Students = usersCommands.GetStudentsOnPage(request.FilterQuery, students)
             };
+        }
+
+        private IQueryable<User> Search(string searchText, List<StudentsOnPageRequest.SearchBy_enum> searchBy, IQueryable<User> users)
+        {
+            if (searchBy.Count == 1)
+            {
+                return SearchBySomething(searchText, searchBy.First(), users);
+            }
+            else
+            {
+                IQueryable<User> result = Enumerable.Empty<User>().AsQueryable();
+
+                foreach (var item in searchBy)
+                {
+                    result.Concat(SearchBySomething(searchText, item, users));
+                }
+
+                return null;
+            }
+        }
+
+        private static IQueryable<User> SearchBySomething(string searchText, StudentsOnPageRequest.SearchBy_enum searchBy, IQueryable<User> users)
+        {
+            switch (searchBy)
+            {
+                case StudentsOnPageRequest.SearchBy_enum.NAME:
+                    {
+                        return users.Where(u => u.Name.Contains(searchText));
+                    }
+                case StudentsOnPageRequest.SearchBy_enum.SURNAME:
+                    {
+                        return users.Where(u => u.Surname.Contains(searchText));
+                    }
+                default:
+                    {
+                        return null;
+                    }
+            }
         }
 
         public string GetUserIdByEmail(string email)
@@ -147,23 +242,23 @@ namespace CoursesPlatform.Services
 
         #region not labeled
 
-        public async Task<StudentsOnPage> SearchByText(SearchStudentsRequest request)
-        {
-            var students = await GetStudents();
+        //public async Task<StudentsOnPage> SearchByText(SearchStudentsRequest request)
+        //{
+        //    var students = await GetStudents();
 
-            var searchResult = students.Where(u => u.Name.Contains(request.SearchText) ||
-                                                   u.Surname.Contains(request.SearchText) ||
-                                                   u.Email.Contains(request.SearchText))
-                                                   .ToList();
+        //    var searchResult = students.Where(u => u.Name.Contains(request.SearchText) ||
+        //                                           u.Surname.Contains(request.SearchText) ||
+        //                                           u.Email.Contains(request.SearchText))
+        //                                           .ToList();
 
-            int totalCount = searchResult.Count();
+        //    int totalCount = searchResult.Count();
 
-            return new StudentsOnPage
-            {
-                TotalCount = totalCount,
-                Students = usersCommands.GetStudentsOnPage(request.StudentsOnPageRequest, searchResult.AsQueryable())
-            };
-        }
+        //    return new StudentsOnPage
+        //    {
+        //        TotalCount = totalCount,
+        //        Students = usersCommands.GetStudentsOnPage(request.StudentsOnPageRequest, searchResult.AsQueryable())
+        //    };
+        //}
 
         public void EdiProfile(EditProfileRequest newInfo, User user)
         {

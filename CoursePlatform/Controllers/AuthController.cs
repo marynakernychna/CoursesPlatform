@@ -108,7 +108,7 @@ namespace CoursesPlatform.Controllers
 
             await authService.RegisterUser(user, request.Password);
 
-            await emailService.SendConfirmationEmail(Request, user);
+            //await emailService.SendConfirmationEmail(Request, user);
 
             return Ok();
         }
@@ -157,7 +157,7 @@ namespace CoursesPlatform.Controllers
 
                 jwtUtils.SaveRefreshToken(newRefreshToken, user);
 
-                var = newRefreshToken.Token;
+                refreshToken = newRefreshToken.Token;
             }
 
             return Ok(new { accessToken = accessToken, refreshToken = refreshToken });

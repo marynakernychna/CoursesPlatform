@@ -11,7 +11,8 @@ import {
     setStudents,
     clearTotalCount,
     setTotalCount,
-    resetIsSortChangedStatus
+    resetIsSortChangedStatus,
+    changeCurrentPage
 } from '../../../../../reduxActions/panel/index';
 
 const mapState = (stateRedux) => {
@@ -31,7 +32,8 @@ const mapDispatchToProps = {
     setStudents,
     clearTotalCount,
     setTotalCount,
-    resetIsSortChangedStatus
+    resetIsSortChangedStatus,
+    changeCurrentPage
 }
 
 export default withRouter(connect(mapState, mapDispatchToProps)(Students));

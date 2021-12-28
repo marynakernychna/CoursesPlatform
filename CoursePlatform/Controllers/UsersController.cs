@@ -11,6 +11,7 @@ using CoursesPlatform.Models.Courses;
 using System;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Microsoft.AspNetCore.Identity;
 
 namespace CoursesPlatform.Controllers
 {
@@ -23,23 +24,27 @@ namespace CoursesPlatform.Controllers
         private readonly IUserAccessor httpUserAccessor;
         private readonly IEmailService emailService;
         private readonly IJwtUtils jwtUtils;
+        private readonly UserManager<User> userManager;
 
         public UsersController(IUserService userService,
                                IUserAccessor httpUserAccessor,
                                IEmailService emailService,
+                               UserManager<User> userManager,
                                IJwtUtils jwtUtils)
         {
             this.userService = userService;
             this.httpUserAccessor = httpUserAccessor;
             this.emailService = emailService;
+            this.userManager = userManager;
             this.jwtUtils = jwtUtils;
         }
 
-        [Authorize(Roles = "Administrator")]
+        //[Authorize(Roles = "Administrator")]
+        [AllowAnonymous]
         [HttpPost("GetStudentsOnPage")]
-        public async Task<IActionResult> GetStudentsOnPage(StudentsOnPageRequest request)
+        public IActionResult GetStudentsOnPage(StudentsOnPageRequest request)
         {
-            var students = await userService.GetStudentsOnPage(request);
+            var students = userService.GetStudentsOnPage(request);
 
             return Ok(students);
         }
@@ -112,14 +117,14 @@ namespace CoursesPlatform.Controllers
             return Ok(profileInfo);
         }
 
-        [Authorize(Roles = "Administrator")]
-        [HttpPost("SearchText")]
-        public async Task<IActionResult> SearchText(SearchStudentsRequest request)
-        {
-            var result = await userService.SearchByText(request);
+        //[Authorize(Roles = "Administrator")]
+        //[HttpPost("SearchText")]
+        //public async Task<IActionResult> SearchText(SearchStudentsRequest request)
+        //{
+        //    var result = await userService.SearchByText(request);
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         [HttpPost("EditProfileInfo")]
         public async Task<IActionResult> EditProfileInfo(EditProfileRequest request)
@@ -152,6 +157,23 @@ namespace CoursesPlatform.Controllers
             {
                 await emailService.SendConfirmationEmail(this.Request, user);
             }
+            return Ok();
+        }
+
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+        {
+            var userId = httpUserAccessor.GetCurrentUserId();
+
+            var user = userService.GetUserById(userId);
+
+            var result = await userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Failed to change password!" });
+            }
+
             return Ok();
         }
 

@@ -7,6 +7,7 @@ import Remove from './removeCourse/index';
 import EditStudent from './editStudent/index';
 import RemoveStudent from './removeStudent/index';
 import EditProfile from './editProfile/index';
+import ChangePassword from './changePassword/index';
 
 class Modals extends React.Component {
 
@@ -47,6 +48,9 @@ class Modals extends React.Component {
             }
             case modalsTypes.EDIT_PROFILE: {
                 return <EditProfile info={this.state.modalInfo.info} />
+            }
+            case modalsTypes.CHANGE_PASSWORD: {
+                return <ChangePassword info={this.state.modalInfo.info} />
             }
         }
     }

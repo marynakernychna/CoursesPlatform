@@ -26,7 +26,8 @@ class ElementsOnPage extends React.Component {
 
         if (this.state.elementsOnPage != onPage &&
             total > 1 &&
-            this.state.elementsOnPage < total) {
+            !(total < onPage &&
+            this.state.elementsOnPage > total)) {
 
             const {
                 changeElementsOnPageCount

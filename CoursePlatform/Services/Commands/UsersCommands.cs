@@ -57,7 +57,7 @@ namespace CoursesPlatform.Services.Commands
 
         #endregion
 
-        public List<StudentDTO> GetStudentsOnPage(StudentsOnPageRequest request, IQueryable<User> students)
+        public List<StudentDTO> GetStudentsOnPage(FilterQuery request, IQueryable<User> students)
         {
             var studentsDtos = FormStudentsList(students);
 

@@ -73,7 +73,7 @@ class EditProfile extends React.Component {
 
             setAlert({
                 type: alertTypes.INFO,
-                message: "You have successfully edited the student __!"
+                message: "You have successfully edited the student !"
             });
 
             finishLoading();
@@ -102,7 +102,7 @@ class EditProfile extends React.Component {
         }
 
         this.closeModal();
-console.log(request);
+        
         usersService.editProfileInfo(request)
             .then(() => {
 
@@ -130,7 +130,7 @@ console.log(request);
                 });
             },
                 err => {
-console.log(err.response);
+                    
                     this.setWarningAlert(err.response);
                 })
             .catch(err => {

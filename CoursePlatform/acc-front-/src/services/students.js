@@ -37,4 +37,9 @@ export default class usersService {
     static editProfileInfo(model) {
         return axios.post(URL + 'EditProfileInfo', model);
     }
+
+    static changePassword(model) {
+        return axios.post(URL + 'ChangePassword', model);
+    }
+    
 }

@@ -22,7 +22,7 @@ namespace CoursesPlatform.Interfaces
 
         UserDTO GetProfileInfo(string userId);
 
-        Task<StudentsOnPage> GetStudentsOnPage(StudentsOnPageRequest request);
+        StudentsOnPage GetStudentsOnPage(StudentsOnPageRequest request);
 
         #endregion
 
@@ -40,7 +40,7 @@ namespace CoursesPlatform.Interfaces
 
         #endregion
 
-        Task<StudentsOnPage> SearchByText(SearchStudentsRequest request);
+        //Task<StudentsOnPage> SearchByText(SearchStudentsRequest request);
 
         void EdiProfile(EditProfileRequest newInfo, User currentInfo);
 

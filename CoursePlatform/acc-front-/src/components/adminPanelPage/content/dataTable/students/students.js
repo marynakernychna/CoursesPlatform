@@ -7,6 +7,8 @@ import { alertTypes } from '../../../../alert/types';
 import PagePagination from "../../../../pagination/index";
 import moment from 'moment';
 import ElementsOnPage from '../../../../elementsOnPage/index';
+import Highlighter from 'react-highlight-words';
+import { SearchOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -22,42 +24,22 @@ class Students extends React.Component {
             currentPage: this.props.currentPage,
             isSortingChanged: this.props.isSortingChanged,
 
-            searchText: ""
+            searchText: undefined,
+            searchOn: undefined
         };
     }
 
     componentDidMount() {
         document.title = "Students";
-
-        var model =
-        {
-            "pageNumber": this.state.currentPage,
-            "elementsOnPage": this.state.elementsOnPage
-        }
-
-        this.getStudents(model);
+        
+        this.getStudents();
     }
 
     componentDidUpdate() {
-
+        
         if (this.state.isSortingChanged) {
-
-            var model;
-
-            if (this.state.searchText == "") {
-
-                model =
-                {
-                    "pageNumber": this.state.currentPage,
-                    "elementsOnPage": this.state.elementsOnPage
-                }
-
-                this.getStudents(model);
-            }
-            else {
-
-                this.onSearch(this.state.searchText);
-            }
+            
+            this.getStudents(this.state.searchText);
         }
     }
 
@@ -71,7 +53,7 @@ class Students extends React.Component {
         }
     }
 
-    getStudents(model) {
+    getStudents(searchText) {
 
         const {
             startLoading,
@@ -83,15 +65,37 @@ class Students extends React.Component {
         } = this.props;
 
         if (this.state.isSortingChanged) {
-            resetIsSortChangedStatus();
 
-            this.setState({
-                isSortingChanged: false
-            })
+            resetIsSortChangedStatus();
         }
 
         startLoading();
 
+        var searchOn;
+
+        switch (this.state.searchOn) {
+            case "name":
+                searchOn = 0;
+                break;
+            case "surname":
+                    searchOn = 1;
+                break;
+            default:
+                searchOn = 0;
+                break;
+        }
+
+        var model = {
+            "searchText": searchText,
+            "searchOn": searchOn,
+            "filterQuery": {
+                "pageNumber": this.state.currentPage,
+                "elementsOnPage": this.state.elementsOnPage,
+                "sortDirection": 2,
+                "sortBy": 4
+            }
+        }
+        
         usersService.getStudents(model)
             .then((response) => {
 
@@ -119,6 +123,7 @@ class Students extends React.Component {
                     studentKey = studentKey + 1;
                 })
 
+                console.log();
                 setStudents(response.data.students);
                 setTotalCount(response.data.totalCount);
             },
@@ -151,8 +156,6 @@ class Students extends React.Component {
         setAlert(model);
     }
 
-    // modals actions
-
     openModal = (record, type) => {
         const {
             openModal
@@ -161,105 +164,86 @@ class Students extends React.Component {
         openModal({ type: type, info: record });
     }
 
-    onSearch = (searchText) => {
-
-        if (searchText == "") {
-            return;
+    getColumnSearchProps = dataIndex => ({
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+            <div style={{ padding: 8 }}>
+                <Input
+                    ref={node => {
+                        this.searchInput = node;
+                    }}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                    style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                            confirm({ closeDropdown: false });
+                            this.setState({
+                                searchText: selectedKeys[0],
+                                searchedColumn: dataIndex,
+                            });
+                        }}
+                    >
+                        Filter
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+        onFilter: (value, record) =>
+            record[dataIndex]
+                ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+                : '',
+        onFilterDropdownVisibleChange: visible => {
+            if (visible) {
+                setTimeout(() => this.searchInput.select(), 100);
+            }
         }
+    });
 
-        this.setState({
-            searchText: searchText
-        });
+    handleSearch = (selectedKeys, confirm, dataIndex) => {
+        
+        confirm();        
 
         const {
-            startLoading,
-            finishLoading,
-            setStudents,
-            clearTotalCount,
-            resetIsSortChangedStatus,
-            setTotalCount
+            changeCurrentPage
         } = this.props;
+        
+        this.setState({
+            searchText: selectedKeys[0],
+            searchOn: dataIndex
+        })
 
-        if (this.state.isSortingChanged) {
-            resetIsSortChangedStatus();
+        changeCurrentPage(1);
+    };
 
-            this.setState({
-                isSortingChanged: false
-            })
-        }
+    handleReset = clearFilters => {
+        
+        clearFilters();
 
-        startLoading();
+        this.setState({
+            searchText: ""
+        })
 
-        var model = {
-            "searchText": searchText,
-            "studentsOnPageRequest": {
-                "pageNumber": this.state.currentPage,
-                "elementsOnPage": this.state.elementsOnPage
-            }
-        }
-
-        usersService.searchByText(model)
-            .then((response) => {
-
-                var studentKey = 0;
-
-                response.data.students.map((info, index) => {
-
-                    info.key = studentKey;
-                    info.isEmailConfirmed = info.isEmailConfirmed.toString();
-                    info.subscriptionsCount = info.subscriptions.length;
-                    info.age = parseInt(moment.duration(moment().diff(new Date(info.birthday))).asYears(), 10);
-
-                    if (info.age < 14) {
-                        info.age = -1
-                    };
-
-                    var subscriptionKey = 1;
-
-                    info.subscriptions.map((course, index) => {
-
-                        course.key = subscriptionKey;
-                        subscriptionKey = subscriptionKey + 1;
-                    })
-
-                    studentKey = studentKey + 1;
-                })
-
-                setStudents(response.data.students);
-                setTotalCount(response.data.totalCount);
-            },
-                err => {
-
-                    clearTotalCount();
-                    this.setWarningAlert();
-                })
-            .catch(err => {
-
-                clearTotalCount();
-                this.setWarningAlert();
-            })
-            .finally(() => {
-                finishLoading();
-            });
-    }
-
-    onClearSearch = (e) => {
-
-        if (e.target.value == "") {
-
-            this.setState({
-                searchText: ""
-            });
-
-            var model =
-            {
-                "pageNumber": this.state.currentPage,
-                "elementsOnPage": this.state.elementsOnPage
-            }
-
-            this.getStudents(model);
-        }
-    }
+        this.getStudents();
+    };
 
     render() {
 
@@ -268,47 +252,34 @@ class Students extends React.Component {
                 key: '1',
                 title: 'Name',
                 dataIndex: 'name',
-                sorter: (a, b) => a.name.localeCompare(b.name)
+                // sorter: (a, b) => a.name.localeCompare(b.name)
+                ...this.getColumnSearchProps('name'),
             },
             {
                 key: '2',
                 title: 'Surname',
                 dataIndex: 'surname',
-                sorter: (a, b) => a.name.localeCompare(b.name)
+                ...this.getColumnSearchProps('surname'),
             },
             {
                 key: '3',
                 title: 'Email',
                 dataIndex: 'email',
-                sorter: (a, b) => a.name.localeCompare(b.name)
             },
             {
                 key: '4',
                 title: 'Age',
-                dataIndex: 'age',
-                sorter: (a, b) => a.age - b.age
+                dataIndex: 'age'
             },
             {
                 key: '5',
                 dataIndex: 'isEmailConfirmed',
-                title: 'Is email confirmed',
-                filters: [
-                    {
-                        text: 'True',
-                        value: 'true',
-                    },
-                    {
-                        text: 'False',
-                        value: 'false',
-                    },
-                ],
-                onFilter: (value, record) => record.isEmailConfirmed.indexOf(value) === 0
+                title: 'Is email confirmed'
             },
             {
                 key: '6',
                 title: 'Subs. count',
-                dataIndex: 'subscriptionsCount',
-                sorter: (a, b) => a.subscriptionsCount - b.subscriptionsCount
+                dataIndex: 'subscriptionsCount'
             },
             {
                 title: 'Actions',
@@ -358,17 +329,6 @@ class Students extends React.Component {
 
         return (
             <>
-
-                <Search
-                    placeholder="input search text"
-                    allowClear
-                    enterButton="Search"
-                    size="large"
-                    onChange={this.onClearSearch}
-                    onSearch={this.onSearch}
-                    style={{ "marginBottom": "20px" }}
-                />
-
                 <ElementsOnPage />
 
                 <PagePagination />

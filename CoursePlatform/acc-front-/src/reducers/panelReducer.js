@@ -65,7 +65,8 @@ const panelReducer = (state = intialState, action) => {
             return {
                 ...state,
                 elementsOnPage: action.payload,
-                isSortingChanged: true
+                isSortingChanged: true,
+                currentPage: 1
             }
         }
 

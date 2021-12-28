@@ -5,5 +5,6 @@ export const modalsTypes = {
     'EDIT_STUDENT': 'EditStudent',
     'REMOVE_COURSE': 'RemoveCourse',
     'REMOVE_STUDENT': 'RemoveStudent',
-    'EDIT_PROFILE': 'EditPofile'
+    'EDIT_PROFILE': 'EditPofile',
+    'CHANGE_PASSWORD': 'ChangePassword'
 }

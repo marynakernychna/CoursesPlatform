@@ -86,7 +86,7 @@ namespace CoursesPlatform.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Response wasn't success !" });
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Response wasn't success!" });
             }
 
             var result = await response.Content.ReadAsStringAsync();

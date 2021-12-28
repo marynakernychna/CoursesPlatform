@@ -119,14 +119,7 @@ class Profile extends React.Component {
             openModal
         } = this.props;
 
-        // if (this.state.isWithoutBirthday) {
-
-        //     openModal({ type: modalsTypes.EDIT_PROFILE_WITHOUT_BIRTHDAY, info: info });
-        // }
-        // else {
-
         openModal({ type: type, info: info });
-        // }
     }
 
     render() {
@@ -199,6 +192,14 @@ class Profile extends React.Component {
                         onClick={() => this.openModal(this.state.profileInfo, modalsTypes.EDIT_PROFILE)}
                     >
                         Change
+                    </Button>
+                    <br />
+                    <Button type="primary" icon={<FormOutlined />}
+                        className="edit-form-button"
+                        style={{ backgroundColor: "orange", "marginTop": "20px" }}
+                        onClick={() => this.openModal(this.state.profileInfo, modalsTypes.CHANGE_PASSWORD)}
+                    >
+                        Change password
                     </Button>
 
                 </Card>
