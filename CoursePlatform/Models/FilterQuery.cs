@@ -5,7 +5,7 @@ namespace CoursesPlatform.Models.Courses
     public class FilterQuery
     {
         public enum SortDirection_enum { ASC, DESC };
-        public enum SortBy_enum { DATE, TITLE, NAME, SURNAME, REGISTEREDDATE, AGE };
+        public enum SortBy_enum { DATE, TITLE, NAME, SURNAME, REGISTEREDDATE, AGE, EMAIL };
 
         public int PageNumber { get; set; }
 

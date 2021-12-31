@@ -16,7 +16,6 @@ axios.interceptors.request.use((config) => {
             "Access-Control-Allow-Origin": "*"
         };
     }
-    // .Authorization = `Bearer ${token}`;
     return config;
 }, error => {
     return Promise.reject(error);
@@ -66,8 +65,8 @@ export default class coursesService {
         return axios.post(URL + 'GetCoursesOnPage', model);
     }
 
-    static getCourses() {
-        return axios.get(URL + 'GetCourses');
+    static getCourses(model) {
+        return axios.post(URL + 'GetCoursesOnPageAdmin', model);
     }
 
     static enroll(model) {

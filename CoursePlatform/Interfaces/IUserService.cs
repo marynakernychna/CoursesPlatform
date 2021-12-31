@@ -22,7 +22,7 @@ namespace CoursesPlatform.Interfaces
 
         UserDTO GetProfileInfo(string userId);
 
-        StudentsOnPage GetStudentsOnPage(StudentsOnPageRequest request);
+        StudentsOnPage GetStudentsOnPage(OnPageRequest request);
 
         #endregion
 

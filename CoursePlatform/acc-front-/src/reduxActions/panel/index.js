@@ -1,5 +1,12 @@
 import * as types from "./types";
 
+export const setSearchText = (text) => {
+    return {
+        type: types.SET_SEACRCH_TEXT,
+        payload: text
+    };
+}
+
 export const setProfileInfo = (info) => {
     return {
         type: types.SET_PROFILE_INFO,

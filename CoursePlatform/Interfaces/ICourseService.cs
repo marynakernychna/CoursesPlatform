@@ -1,5 +1,6 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Models.Courses;
+using CoursesPlatform.Models.Users;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ namespace CoursesPlatform.Interfaces
 
         SubscriptionsOnPage SortAndGetUserSubscriptionsOnPage(FilterQuery request);
 
-        CoursesOnPage SortAndGetCoursesOnPage(FilterQuery request);
+        CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request);
+
+        CoursesOnPageResponse GetCoursesOnPageAdmin(OnPageRequest request);
 
         #endregion
 
@@ -48,8 +51,6 @@ namespace CoursesPlatform.Interfaces
         #region get
 
         List<User> GetSubscribersByCourseId(int courseId);
-
-        List<Course> GetCourses();
 
         #endregion
 

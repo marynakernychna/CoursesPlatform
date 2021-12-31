@@ -29,7 +29,7 @@ class AddCourse extends React.Component {
                 });
             },
                 err => {
-
+console.log(err.response);
                     this.setWarningAlert();
                 })
             .catch(err => {

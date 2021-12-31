@@ -28,75 +28,20 @@ namespace CoursesPlatform.Services
             this.usersCommands = usersCommands;
         }
 
-        #region get
+        #region on page
 
-        public async Task<IList<User>> GetStudents()
+        public StudentsOnPage GetStudentsOnPage(OnPageRequest request)
         {
-            return await userManager.GetUsersInRoleAsync("Student");
-        }
+            var students = GetStudents();
 
-        public StudentsOnPage GetStudentsOnPage(StudentsOnPageRequest request)
-        {
-            var students = GetStudents().Result.AsQueryable();
-
-            if (!string.IsNullOrEmpty(request.SearchText) &&
-                !string.IsNullOrWhiteSpace(request.SearchText) &&
-                request.SearchBy.Count >= 1)
+            if (!string.IsNullOrWhiteSpace(request.SearchText))
             {
-                students = Search(request.SearchText, request.SearchBy, students);
+                students = Search(request.SearchText.ToLower(), students);
             }
 
             int totalCount = students.Count();
 
-            switch (request.FilterQuery.SortDirection)
-            {
-                case Models.Courses.FilterQuery.SortDirection_enum.ASC:
-                    switch (request.FilterQuery.SortBy)
-                    {
-                        case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
-                            {
-                                students = students.OrderBy(s => s.Surname);
-                            }
-                            break;
-                        case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
-                            {
-                                students = students.OrderBy(s => s.RegisteredDate);
-                            }
-                            break;
-                        case Models.Courses.FilterQuery.SortBy_enum.AGE:
-                            {
-                                students = students.OrderBy(s => s.Birthday);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case Models.Courses.FilterQuery.SortDirection_enum.DESC:
-                    switch (request.FilterQuery.SortBy)
-                    {
-                        case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
-                            {
-                                students = students.OrderByDescending(s => s.Surname);
-                            }
-                            break;
-                        case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
-                            {
-                                students = students.OrderByDescending(s => s.RegisteredDate);
-                            }
-                            break;
-                        case Models.Courses.FilterQuery.SortBy_enum.AGE:
-                            {
-                                students = students.OrderByDescending(s => s.Birthday);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
-            }
+            students = SortByDirection(request, students);
 
             return new StudentsOnPage
             {
@@ -105,43 +50,129 @@ namespace CoursesPlatform.Services
             };
         }
 
-        private IQueryable<User> Search(string searchText, List<StudentsOnPageRequest.SearchBy_enum> searchBy, IQueryable<User> users)
+        private IQueryable<User> GetStudents()
         {
-            if (searchBy.Count == 1)
-            {
-                return SearchBySomething(searchText, searchBy.First(), users);
-            }
-            else
-            {
-                IQueryable<User> result = Enumerable.Empty<User>().AsQueryable();
+            var roleId = appDbContext.Roles.FirstOrDefault(r => r.Name == "Student").Id;
 
-                foreach (var item in searchBy)
-                {
-                    result.Concat(SearchBySomething(searchText, item, users));
-                }
-
-                return null;
+            if (string.IsNullOrEmpty(roleId))
+            {
+                throw new RestException(HttpStatusCode.NotFound, new { Message = "Role <Student> not found!" });
             }
+
+            var usersInRoleId = appDbContext.UserRoles.Where(u => u.RoleId == roleId);
+
+            return appDbContext.Users.Where(u => usersInRoleId.Any(r => r.UserId == u.Id));
         }
 
-        private static IQueryable<User> SearchBySomething(string searchText, StudentsOnPageRequest.SearchBy_enum searchBy, IQueryable<User> users)
+        private IQueryable<User> Search(string searchText, IQueryable<User> users)
         {
-            switch (searchBy)
+            return users.Where(u => u.Name.ToLower().Contains(searchText) ||
+                                    u.Surname.ToLower().Contains(searchText) ||
+                                    u.Email.ToLower().Contains(searchText));
+        }
+
+        private static IQueryable<User> SortByDirection(OnPageRequest request, IQueryable<User> students)
+        {
+            switch (request.FilterQuery.SortDirection)
             {
-                case StudentsOnPageRequest.SearchBy_enum.NAME:
+                case Models.Courses.FilterQuery.SortDirection_enum.ASC:
                     {
-                        return users.Where(u => u.Name.Contains(searchText));
+                        students = SortByAsc(request, students);
+                        break;
                     }
-                case StudentsOnPageRequest.SearchBy_enum.SURNAME:
+                case Models.Courses.FilterQuery.SortDirection_enum.DESC:
                     {
-                        return users.Where(u => u.Surname.Contains(searchText));
+                        students = SortByDesc(request, students);
+                        break;
                     }
                 default:
                     {
-                        return null;
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
                     }
             }
+
+            return students;
         }
+
+        private static IQueryable<User> SortByAsc(OnPageRequest request, IQueryable<User> students)
+        {
+            switch (request.FilterQuery.SortBy)
+            {
+                case Models.Courses.FilterQuery.SortBy_enum.NAME:
+                    {
+                        students = students.OrderBy(s => s.Name);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
+                    {
+                        students = students.OrderBy(s => s.Surname);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
+                    {
+                        students = students.OrderBy(s => s.RegisteredDate);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.AGE:
+                    {
+                        students = students.OrderBy(s => s.Birthday);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.EMAIL:
+                    {
+                        students = students.OrderBy(s => s.Email);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
+                    }
+            }
+
+            return students;
+        }
+
+        private static IQueryable<User> SortByDesc(OnPageRequest request, IQueryable<User> students)
+        {
+            switch (request.FilterQuery.SortBy)
+            {
+                case Models.Courses.FilterQuery.SortBy_enum.NAME:
+                    {
+                        students = students.OrderByDescending(s => s.Name);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.SURNAME:
+                    {
+                        students = students.OrderByDescending(s => s.Surname);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.REGISTEREDDATE:
+                    {
+                        students = students.OrderByDescending(s => s.RegisteredDate);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.AGE:
+                    {
+                        students = students.OrderByDescending(s => s.Birthday);
+                    }
+                    break;
+                case Models.Courses.FilterQuery.SortBy_enum.EMAIL:
+                    {
+                        students = students.OrderByDescending(s => s.Email);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
+                    }
+            }
+
+            return students;
+        }
+
+        #endregion
+
+        #region get
 
         public string GetUserIdByEmail(string email)
         {
@@ -190,7 +221,6 @@ namespace CoursesPlatform.Services
             };
         }
 
-
         #endregion
 
         #region change
@@ -219,46 +249,6 @@ namespace CoursesPlatform.Services
 
             appDbContext.SaveChanges();
         }
-
-        public void DeleteUser(User user)
-        {
-            usersCommands.DeleteUserSubscribes(user.Id);
-
-            appDbContext.Users.Remove(user);
-
-            appDbContext.SaveChanges();
-        }
-
-        #endregion
-
-        #region check
-
-        public bool CheckIsUserExistsByEmail(string email)
-        {
-            return appDbContext.Users.FirstOrDefault(u => u.Email == email) != null;
-        }
-
-        #endregion
-
-        #region not labeled
-
-        //public async Task<StudentsOnPage> SearchByText(SearchStudentsRequest request)
-        //{
-        //    var students = await GetStudents();
-
-        //    var searchResult = students.Where(u => u.Name.Contains(request.SearchText) ||
-        //                                           u.Surname.Contains(request.SearchText) ||
-        //                                           u.Email.Contains(request.SearchText))
-        //                                           .ToList();
-
-        //    int totalCount = searchResult.Count();
-
-        //    return new StudentsOnPage
-        //    {
-        //        TotalCount = totalCount,
-        //        Students = usersCommands.GetStudentsOnPage(request.StudentsOnPageRequest, searchResult.AsQueryable())
-        //    };
-        //}
 
         public void EdiProfile(EditProfileRequest newInfo, User user)
         {
@@ -289,6 +279,29 @@ namespace CoursesPlatform.Services
 
             appDbContext.SaveChanges();
         }
+
+        public void DeleteUser(User user)
+        {
+            usersCommands.DeleteUserSubscribes(user.Id);
+
+            appDbContext.Users.Remove(user);
+
+            appDbContext.SaveChanges();
+        }
+
+        #endregion
+
+        #region check
+
+        public bool CheckIsUserExistsByEmail(string email)
+        {
+            return appDbContext.Users.FirstOrDefault(u => u.Email == email) != null;
+        }
+
+        #endregion
+
+        #region not labeled
+
 
         #endregion
     }

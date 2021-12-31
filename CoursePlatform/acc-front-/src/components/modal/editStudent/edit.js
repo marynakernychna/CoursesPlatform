@@ -98,7 +98,7 @@ class EditStudent extends React.Component {
                 });
             },
                 err => {
-
+                    
                     this.setWarningAlert(err.response);
                 })
             .catch(err => {

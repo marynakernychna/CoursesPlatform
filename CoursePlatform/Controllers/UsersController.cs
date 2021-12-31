@@ -39,10 +39,10 @@ namespace CoursesPlatform.Controllers
             this.jwtUtils = jwtUtils;
         }
 
-        //[Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator")]
         [AllowAnonymous]
         [HttpPost("GetStudentsOnPage")]
-        public IActionResult GetStudentsOnPage(StudentsOnPageRequest request)
+        public IActionResult GetStudentsOnPage(OnPageRequest request)
         {
             var students = userService.GetStudentsOnPage(request);
 

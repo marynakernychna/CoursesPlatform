@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CoursesPlatform.Models.Courses
 {
-    public class CoursesOnPage
+    public class CoursesOnPageResponse
     {
         public int TotalCount { get; set; }
 

@@ -19,8 +19,6 @@ const mapState = (stateRedux) => {
     return {
         loading: stateRedux.generalReducer.loading,
         data: stateRedux.panelReducer.data,
-        elementsOnPage: stateRedux.panelReducer.elementsOnPage,
-        currentPage: stateRedux.panelReducer.currentPage,
         isSortingChanged: stateRedux.panelReducer.isSortingChanged
     }
 }

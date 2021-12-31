@@ -5,7 +5,7 @@ namespace CoursesPlatform.Models.Users
     {
         public string SearchText { get; set; }
 
-        public StudentsOnPageRequest StudentsOnPageRequest { get; set; }
+        public OnPageRequest StudentsOnPageRequest { get; set; }
     }
 
     public class SearchStudentsRequestValidator : AbstractValidator<SearchStudentsRequest>

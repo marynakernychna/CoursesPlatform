@@ -88,7 +88,7 @@ namespace CoursesPlatform.Services
 
         public async Task SendEmail(string email, string subject, string message)
         {
-            var apiKey = "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";
+            var apiKey = "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";
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress("markkernychny@gmail.com", "no-reply");
             var to = new EmailAddress(email, email);

@@ -19,7 +19,8 @@ const intialState = {
 
     data: [],
     profileInfo: {},
-    date: undefined
+    date: undefined,
+    searchText: ""
 }
 
 const panelReducer = (state = intialState, action) => {
@@ -43,6 +44,16 @@ const panelReducer = (state = intialState, action) => {
             return {
                 ...state,
                 profileInfo: action.payload
+            }
+        }
+
+        case types.SET_SEACRCH_TEXT: {
+
+            return {
+                ...state,
+                searchText: action.payload,
+                currentPage: 1,
+                
             }
         }
 

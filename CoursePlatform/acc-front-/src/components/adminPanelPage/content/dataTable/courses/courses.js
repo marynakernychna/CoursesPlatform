@@ -1,12 +1,16 @@
 import React from 'react';
-import { Layout, Button, Space, Table } from 'antd';
+import { Layout, Button, Space, Table, Input } from 'antd';
 import { FormOutlined, CloseOutlined } from '@ant-design/icons';
 import coursesService from '../../../../../services/courses';
 import { modalsTypes } from '../../../../modal/modalsTypes';
 import { alertTypes } from '../../../../alert/types';
+import { elementsOnPage } from '../../../../../constants/elementsOnPageCount';
+import { sortByTypes } from '../../../../../constants/sortByTypes';
+import { sortDirectionTypes } from '../../../../../constants/sortDirectionTypes';
 import moment from 'moment';
 
 const { Content } = Layout;
+const { Search } = Input;
 
 class Courses extends React.Component {
 
@@ -14,8 +18,15 @@ class Courses extends React.Component {
         super(props);
         this.state = {
             courses: [],
+            dateFormat: "YYYY-MM-DD",
 
-            dateFormat: "YYYY-MM-DD"
+            elementsOnPage: elementsOnPage[10],
+            sortBy: sortByTypes.DATE,
+            sortDirection: sortDirectionTypes.ASC,
+            isSortingChanged: this.props.isSortingChangedRedux,
+            totalCount: 0,
+            currentPage: 1,
+            searchText: undefined
         };
     }
 
@@ -26,10 +37,19 @@ class Courses extends React.Component {
         this.getCourses();
     }
 
+    componentDidUpdate() {
+
+        if (this.state.isSortingChanged) {
+
+            this.getCourses();
+        }
+    }
+
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
         return {
-            courses: nextProps.data
+            courses: nextProps.data,
+            isSortingChangedRedux: nextProps.isSortingChanged
         }
     }
 
@@ -38,29 +58,57 @@ class Courses extends React.Component {
         const {
             startLoading,
             finishLoading,
-            setCourses
+            setCourses,
+            clearTotalCount,
+            resetIsSortChangedStatus,
+            setTotalCount
         } = this.props;
+
+        if (this.state.isSortingChanged) {
+
+            resetIsSortChangedStatus();
+        }
 
         startLoading();
 
-        coursesService.getCourses()
+        var model = {
+            "searchText": this.state.searchText,
+            "filterQuery": {
+                "pageNumber": this.state.currentPage,
+                "elementsOnPage": this.state.elementsOnPage,
+                "sortDirection": this.state.sortDirection,
+                "sortBy": this.state.sortBy
+            }
+        }
+        
+        coursesService.getCourses(model)
             .then((response) => {
+                
+                var courseKey = 0;
 
-                var key = 0;
-                response.data.map((info, index) => {
-                    info.key = key;
+                response.data.courses.map((info, index) => {
+
+                    info.key = courseKey;
                     info.createDate = moment(info.createDate).format(this.state.dateFormat);
-                    key = key + 1;
+                    courseKey = courseKey + 1;
                 })
 
-                setCourses(response.data);
+                this.setState({
+                    totalCount: response.data.totalCount
+                })
+
+                setCourses(response.data.courses);
+                setTotalCount(response.data.totalCount);
+
             },
                 err => {
-
+                    
+                    clearTotalCount();
                     this.setWarningAlert();
                 })
             .catch(err => {
-
+                
+                clearTotalCount();
                 this.setWarningAlert();
             })
             .finally(() => {
@@ -92,6 +140,76 @@ class Courses extends React.Component {
         openModal({ type: type, info: record });
     }
 
+    handlePageChange = (page, pageSize) => {
+
+        if (pageSize != this.state.elementsOnPage) {
+
+            this.setState({
+                currentPage: 1,
+                elementsOnPage: pageSize
+            }, function () { this.getCourses() });
+        }
+        else {
+            this.setState({
+                currentPage: page,
+                elementsOnPage: pageSize
+            }, function () { this.getCourses() });
+        }
+    }
+
+    onSearch = (value) => {
+
+        if (value != this.state.searchText) {
+
+            this.setState({
+                searchText: value,
+                currentPage: 1
+            }, function () { this.getCourses() });
+        }
+    }
+
+    sortBy = (pagination, filters, sorter) => {
+
+        var order;
+        var field;
+
+        switch (sorter.order) {
+            case "descend": {
+                order = sortDirectionTypes.DESC;
+                break;
+            }
+            case "ascend": {
+                order = sortDirectionTypes.ASC;
+                break;
+            }
+            default: {
+                this.setState({
+                    sortBy: sortByTypes.DATE,
+                    sortDirection: sortDirectionTypes.ASC
+                }, function () { this.getCourses() });
+                return;
+            }
+        }
+
+        switch (sorter.field) {
+            case "title":
+                {
+                    field = sortByTypes.TITLE;
+                    break;
+                }
+            case "createDate":
+                {
+                    field = sortByTypes.DATE;
+                    break;
+                }
+        }
+
+        this.setState({
+            sortBy: field,
+            sortDirection: order
+        }, function () { this.getCourses() });
+    }
+
     render() {
 
         const columns = [
@@ -99,12 +217,13 @@ class Courses extends React.Component {
                 key: '1',
                 title: 'Title',
                 dataIndex: 'title',
-                sorter: (a, b) => a.title.localeCompare(b.title)
+                sorter: true
             },
             {
                 key: '2',
                 title: 'Creation date',
-                dataIndex: 'createDate'
+                dataIndex: 'createDate',
+                sorter: true
             },
             {
                 title: 'Actions',
@@ -132,18 +251,32 @@ class Courses extends React.Component {
         };
 
         return (
+            <>
 
-            <Table
-                {...tableProps}
-                columns={columns}
-                pagination={{
-                    position: ['topCenter', 'bottomCenter'],
-                    defaultPageSize: 10,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['10', '20', '30'],
-                }}
-                dataSource={this.state.courses}
-            />
+                <Search
+                    placeholder="input search text"
+                    allowClear
+                    enterButton="Search"
+                    size="large"
+                    onSearch={(value) => this.onSearch(value)}
+                />
+
+                <Table
+                    {...tableProps}
+                    columns={columns}
+                    dataSource={this.state.courses}
+                    showSorterTooltip={true}
+                    pagination={{
+                        position: "bottomRight",
+                        current: this.state.currentPage,
+                        total: this.state.totalCount,
+                        onChange: (page, pageSize) => this.handlePageChange(page, pageSize)
+                    }}
+                    onChange={(pagination, filters, sorter) => this.sortBy(pagination, filters, sorter)}
+                    style={{ "marginTop": "20px" }}
+                />
+
+            </>
         );
     }
 }

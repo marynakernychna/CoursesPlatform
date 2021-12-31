@@ -7,6 +7,7 @@ using CoursesPlatform.Models.Courses;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Models;
+using CoursesPlatform.Models.Users;
 
 namespace CoursesPlatform.Controllers
 {
@@ -29,10 +30,10 @@ namespace CoursesPlatform.Controllers
         }
 
         [Authorize(Roles = "Administrator")]
-        [HttpGet("GetCourses")]
-        public IActionResult GetCourses()
+        [HttpPost("GetCoursesOnPageAdmin")]
+        public IActionResult GetCoursesOnPageAdmin(OnPageRequest request)
         {
-            var courses = courseService.GetCourses();
+            var courses = courseService.GetCoursesOnPageAdmin(request);
 
             return Ok(courses);
         }
@@ -40,7 +41,7 @@ namespace CoursesPlatform.Controllers
         [HttpPost("GetCoursesOnPage")]
         public IActionResult GetCoursesOnPage(FilterQuery request)
         {
-            var courses = courseService.SortAndGetCoursesOnPage(request);
+            var courses = courseService.SortAndGetCoursesOnStudentPage(request);
 
             return Ok(courses);
         }

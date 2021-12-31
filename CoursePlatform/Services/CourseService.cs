@@ -9,6 +9,7 @@ using CoursesPlatform.Interfaces.Commands;
 using CoursesPlatform.Models.Courses;
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
+using CoursesPlatform.Models.Users;
 
 namespace CoursesPlatform.Services
 {
@@ -38,7 +39,7 @@ namespace CoursesPlatform.Services
 
         #region on Page
 
-        public CoursesOnPage SortAndGetCoursesOnPage(FilterQuery request)
+        public CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request)
         {
             IQueryable<Course> allCoursesQuery = appDbContext.Courses.AsQueryable();
 
@@ -46,7 +47,7 @@ namespace CoursesPlatform.Services
 
             int totalCount = allCoursesQuery.Count();
 
-            return new CoursesOnPage
+            return new CoursesOnPageResponse
             {
                 TotalCount = totalCount,
                 Courses = coursesCommands.GetCoursesOnPage(request, sortedCourses)
@@ -68,6 +69,101 @@ namespace CoursesPlatform.Services
                 TotalCount = totalCount,
                 Subscriptions = coursesCommands.GetUserSubscriptionsOnPage(request, sortedSubscriptions)
             };
+        }
+
+        public CoursesOnPageResponse GetCoursesOnPageAdmin(OnPageRequest request)
+        {
+            var courses = appDbContext.Courses.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(request.SearchText))
+            {
+                courses = Search(request.SearchText.ToLower(), courses);
+            }
+
+            int totalCount = courses.Count();
+
+            courses = SortByDirection(request, courses);
+
+            return new CoursesOnPageResponse
+            {
+                TotalCount = totalCount,
+                Courses = coursesCommands.GetCoursesOnPage(request.FilterQuery, courses)
+            };
+        }
+
+        private IQueryable<Course> Search(string searchText, IQueryable<Course> courses)
+        {
+            return courses.Where(u => u.Title.ToLower().Contains(searchText) ||
+                                      u.Description.ToLower().Contains(searchText));
+        }
+
+        private static IQueryable<Course> SortByDirection(OnPageRequest request, IQueryable<Course> courses)
+        {
+            switch (request.FilterQuery.SortDirection)
+            {
+                case Models.Courses.FilterQuery.SortDirection_enum.ASC:
+                    {
+                        courses = SortByAsc(request, courses);
+                        break;
+                    }
+                case Models.Courses.FilterQuery.SortDirection_enum.DESC:
+                    {
+                        courses = SortByDesc(request, courses);
+                        break;
+                    }
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
+                    }
+            }
+
+            return courses;
+        }
+
+        private static IQueryable<Course> SortByAsc(OnPageRequest request, IQueryable<Course> courses)
+        {
+            switch (request.FilterQuery.SortBy)
+            {
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderBy(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderBy(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
+                    }
+            }
+
+            return courses;
+        }
+
+        private static IQueryable<Course> SortByDesc(OnPageRequest request, IQueryable<Course> courses)
+        {
+            switch (request.FilterQuery.SortBy)
+            {
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderByDescending(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderByDescending(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
+                    }
+            }
+
+            return courses;
         }
 
         #endregion
@@ -197,7 +293,7 @@ namespace CoursesPlatform.Services
             return users;
         }
 
-        public List<Course> GetCourses()
+        public List<Course> GetCoursesOnPageAdmin()
         {
             return appDbContext.Courses.ToList();
         }
