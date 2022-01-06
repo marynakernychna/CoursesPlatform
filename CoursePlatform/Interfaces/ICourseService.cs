@@ -2,62 +2,36 @@
 using CoursesPlatform.Models.Courses;
 using CoursesPlatform.Models.Users;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Interfaces
 {
     public interface ICourseService
     {
-
-        #region on Page
-
-        SubscriptionsOnPage SortAndGetUserSubscriptionsOnPage(FilterQuery request);
+        CoursesOnPageResponse GetCoursesOnAdminPage(GetCurrentPageRequest request);
 
         CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request);
 
-        CoursesOnPageResponse GetCoursesOnPageAdmin(OnPageRequest request);
-
-        #endregion
-
-        #region change
+        SubscriptionsOnPage SortAndGetUserSubscriptionsOnPage(FilterQuery request);
 
         void AddCourse(AddCourseRequest course);
 
-        Task EditCourse(CourseDTO newInfo, Course oldInfo);
+        Course GetCourseById(int id);
 
-        void AddNewSubscription(UserSubscriptions subscription);
+        bool CheckIsOldUserInfoIsEqualToOld(Course oldInfo, CourseDTO newInfo);
 
-        void UnsubscribeFromCourse(string userId, int courseId);
+        Task EditCourseAsync(CourseDTO newInfo, Course oldInfo);
 
-        Task DeleteCourseById(int courseId);
-
-        #endregion
-
-        #region check
-
-        bool CheckIsCourseExistsById(int courseId);
+        Task DeleteCourseByIdAsync(int courseId);
 
         bool CheckIsSubscriptionExists(int courseId, string userId);
 
-        #endregion
+        UserSubscriptions CreateNewSubscriptionModel(string userId, int courseId, DateTime startDate);
 
-        #region get by
+        void AddNewSubscription(UserSubscriptions subscription);
 
-        Course GetCourseById(int id);
+        bool CheckIsCourseExistsById(int courseId);
 
-        #endregion
-
-        #region get
-
-        List<User> GetSubscribersByCourseId(int courseId);
-
-        #endregion
-
-        #region form
-
-        UserSubscriptions CreateNewSubscriptionModel(DateTime startDate, User user, Course course);
-
-        #endregion
+        void UnsubscribeFromCourse(string userId, int courseId);
     }
 }

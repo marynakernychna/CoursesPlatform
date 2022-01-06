@@ -1,24 +1,22 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
+using System.Threading.Tasks;
 
 namespace CoursesPlatform.Interfaces
 {
     public interface IJwtUtils
     {
-        public string GenerateAccessToken(User user);
+        public Task<string> GenerateAccessTokenAsync(User user);
 
         public RefreshToken GenerateRefreshToken(string ipAddress);
 
-        public void SaveRefreshToken(RefreshToken token, User user);
+        public void RevokeAccess(User user, string ipAddress);
 
-        void RevokeRefreshToken(string token, string ipAddress);
+        void SaveRefreshToken(RefreshToken token, User user);
 
         bool CheckIsUserHasActiveRefreshToken(User user);
 
         string GetRefreshToken(User user);
 
-        public User GetUserByRefreshToken(string token);
-
-        public void RevokeAccess(User user, string ipAddress);
-
+        User GetUserByRefreshToken(string token);
     }
 }

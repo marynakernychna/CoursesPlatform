@@ -1,23 +1,29 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System;
+using System.Linq;
+using CoursesPlatform.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace CoursesPlatform.Utils
 {
-    public static class Utils
+    public class Utils : IUtils
     {
-        public static string HashPassword(string password)
+        private Random random = new Random();
+
+        public string GenerateRandomPassword()
         {
-            using (SHA256 sha256Hash = SHA256.Create())
+            return new string(Enumerable.Repeat(StringConstants.SymbolsForGeneratePassword, 10)
+                                        .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public string GetIpAddressOfCurrentRequest(HttpRequest request, HttpContext httpContext)
+        {
+            if (request.Headers.ContainsKey("X-Forwarded-For"))
             {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-
-                return builder.ToString();
+                return request.Headers["X-Forwarded-For"];
+            }
+            else
+            {
+                return httpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
             }
         }
     }

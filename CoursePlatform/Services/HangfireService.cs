@@ -1,27 +1,26 @@
-﻿using CoursesPlatform.EntityFramework;
-using CoursesPlatform.EntityFramework.Models;
+﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Interfaces;
+using CoursesPlatform.Interfaces.Queries;
 using Hangfire;
 using System;
-using System.Linq;
 
 namespace CoursesPlatform.Services
 {
     public class HangfireService : IHangfireService
     {
-        private readonly AppDbContext appDbContext;
         private readonly IEmailService emailService;
+        private readonly IHangfireQueries hangfireQueries;
 
-        public HangfireService(AppDbContext appDbContext,
-                               IEmailService emailService)
+        public HangfireService(IEmailService emailService,
+                               IHangfireQueries hangfireQueries)
         {
-            this.appDbContext = appDbContext;
             this.emailService = emailService;
+            this.hangfireQueries = hangfireQueries;
         }
 
         public void DeleteCourseStartNotifications(int subscriptionId)
         {
-            var jobs = appDbContext.ScheduleHangfireJobs.Where(j => j.UserSubscriptionId == subscriptionId).ToList();
+            var jobs = hangfireQueries.GetScheduleSubscriptionHangfireJobs(subscriptionId);
 
             foreach (var item in jobs)
             {
@@ -32,41 +31,42 @@ namespace CoursesPlatform.Services
         public void SetCourseStartNotifications(UserSubscriptions subscription, string userEmail, string courseTitle)
         {
             var currentDate = DateTime.UtcNow;
-            TimeSpan daysToCourse = subscription.StartDate - currentDate;
+            var daysToCourse = subscription.StartDate - currentDate;
 
-            if (daysToCourse.Days >= 1)
+            var daysConstants = new DaysConstants(subscription.StartDate);
+
+            if (daysToCourse.Days >= daysConstants.OneDay)
             {
-                Days daysConstants = new Days(subscription.StartDate);
 
                 var job1day = BackgroundJob.Schedule(
-                    () => emailService.SendEmail(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a day. See you at training."),
-                    daysConstants.OneDays);
+                    () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a day. See you at training."),
+                    daysConstants.OneDayDifference);
 
-                appDbContext.ScheduleHangfireJobs.Add(new ScheduleHangfireJob
+                hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
                 {
                     JobId = job1day,
                     UserSubscriptionId = subscription.Id
                 });
 
-                if (daysToCourse.Days >= 7)
+                if (daysToCourse.Days >= daysConstants.SevenDays)
                 {
                     var job7days = BackgroundJob.Schedule(
-                        () => emailService.SendEmail(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a week. See you at training."),
-                        daysConstants.SevenDay);
+                        () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a week. See you at training."),
+                        daysConstants.SevenDaysDifference);
 
-                    appDbContext.ScheduleHangfireJobs.Add(new ScheduleHangfireJob
+                    hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
                     {
                         JobId = job7days,
                         UserSubscriptionId = subscription.Id
                     });
                 }
-                if (daysToCourse.Days >= 30)
+                if (daysToCourse.Days >= daysConstants.ThirtyDays)
                 {
                     var job30days = BackgroundJob.Schedule(
-                       () => emailService.SendEmail(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a month. See you at training."),
-                       daysConstants.ThirtyDays);
+                       () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a month. See you at training."),
+                       daysConstants.ThirtyDaysDifference);
 
-                    appDbContext.ScheduleHangfireJobs.Add(new ScheduleHangfireJob
+                    hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
                     {
                         JobId = job30days,
                         UserSubscriptionId = subscription.Id
@@ -74,7 +74,7 @@ namespace CoursesPlatform.Services
                 }
             }
 
-            appDbContext.SaveChanges();
+            hangfireQueries.SaveChanges();
         }
     }
 }

@@ -35,6 +35,7 @@ namespace CoursesPlatform.Services
             {
                 RequestServices = serviceProvider
             };
+
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             using (StringWriter sw = new StringWriter())

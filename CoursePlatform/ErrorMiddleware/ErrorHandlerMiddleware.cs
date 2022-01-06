@@ -25,7 +25,9 @@ namespace CoursesPlatform.ErrorMiddleware
             catch (Exception error)
             {
                 var response = context.Response;
+
                 response.ContentType = "application/json";
+
                 object errors = null;
 
                 switch (error)
@@ -34,14 +36,11 @@ namespace CoursesPlatform.ErrorMiddleware
                         {
                             errors = ex.Errors;
                             response.StatusCode = (int)ex.StatusCode;
-                            //_log.LogError("BadRequest (400) > " + error?.Message);
                             break;
                         }
                     default:
                         {
                             response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                            //_log.LogError("InternalServerError (500) > " + error?.Message);
-
                             break;
                         }
                 }

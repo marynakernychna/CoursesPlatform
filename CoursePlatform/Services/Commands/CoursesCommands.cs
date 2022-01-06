@@ -1,8 +1,7 @@
-﻿using CoursesPlatform.EntityFramework;
-using CoursesPlatform.EntityFramework.Models;
+﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
-using CoursesPlatform.Interfaces;
 using CoursesPlatform.Interfaces.Commands;
+using CoursesPlatform.Interfaces.Queries;
 using CoursesPlatform.Models.Courses;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,121 +11,92 @@ namespace CoursesPlatform.Services.Commands
 {
     public class CoursesCommands : ICoursesCommands
     {
-        private AppDbContext appDbContext;
-        private readonly IHangfireService hangfireService;
+        private readonly ICoursesQueries coursesQueries;
+        private readonly IUserQueries userQueries;
 
-        public CoursesCommands(AppDbContext appDbContext,
-                               IHangfireService hangfireService)
+        public CoursesCommands(ICoursesQueries coursesQueries,
+                               IUserQueries userQueries)
         {
-            this.appDbContext = appDbContext;
-            this.hangfireService = hangfireService;
+            this.coursesQueries = coursesQueries;
+            this.userQueries = userQueries;
         }
 
-        #region on Page
-
-        public IQueryable<Course> SortCourses(FilterQuery request, IQueryable<Course> courses)
+        public IQueryable<Course> SortCoursesByDirection(FilterQuery request, IQueryable<Course> courses)
         {
             switch (request.SortDirection)
             {
                 case FilterQuery.SortDirection_enum.ASC:
                     {
-                        return SortCoursesASCBySomething(request.SortBy, courses);
+                        courses = SortCoursesByAsc(request, courses);
+                        break;
                     }
                 case FilterQuery.SortDirection_enum.DESC:
                     {
-                        return SortCoursesDESCBySomething(request.SortBy, courses);
+                        courses = SortCoursesByDesc(request, courses);
+                        break;
                     }
                 default:
                     {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort direction type !" });
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
                     }
-            };
-        }
-
-        public List<Course> GetCoursesOnPage(FilterQuery request, IQueryable<Course> courses)
-        {
-            return courses.Skip((request.PageNumber - 1) * request.ElementsOnPage)
-                          .Take(request.ElementsOnPage)
-                          .ToList();
-        }
-
-        public IQueryable<CourseDTO> SortSubscriptions(FilterQuery request, IQueryable<CourseDTO> courses)
-        {
-            switch (request.SortDirection)
-            {
-                case FilterQuery.SortDirection_enum.ASC:
-                    {
-                        return SortBySomethingASCSubs(request.SortBy, courses);
-                    }
-                case FilterQuery.SortDirection_enum.DESC:
-                    {
-                        return SortBySomethingDESCSubs(request.SortBy, courses);
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort direction !" });
-                    }
-            };
-        }
-
-        public List<CourseDTO> GetUserSubscriptionsOnPage(FilterQuery request, IQueryable<CourseDTO> courses)
-        {
-            return courses.Skip((request.PageNumber - 1) * request.ElementsOnPage)
-                          .Take(request.ElementsOnPage)
-                          .ToList();
-        }
-
-        #endregion
-
-        #region change
-
-        public void UnsubscribeFromCourse(string userId, int courseId)
-        {
-            var subscription = GetUserSubscription(courseId, userId);
-
-            appDbContext.UsersSubscriptions.Remove(subscription);
-            appDbContext.SaveChanges();
-        }
-
-
-        #endregion
-
-        #region get
-
-        public List<UserSubscriptions> GetUserSubscriptionsQueryByCourseId(int courseId)
-        {
-            return appDbContext.UsersSubscriptions.Where(s => s.CourseId == courseId).ToList();
-        }
-
-        public UserSubscriptions GetUserSubscription(int courseId, string userId)
-        {
-            var subscription = appDbContext.UsersSubscriptions.FirstOrDefault(s => s.CourseId == courseId && s.UserId == userId);
-
-            if (subscription == null)
-            {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Subscription not found !" });
             }
 
-            return subscription;
+            return courses;
         }
 
-        public List<CourseDTO> GetUserSubscriptions(string userId)
+        private IQueryable<Course> SortCoursesByAsc(FilterQuery request, IQueryable<Course> courses)
         {
-            var subscriptions = appDbContext.UsersSubscriptions.Where(s => s.UserId == userId)
-                                                               .AsQueryable();
-
-            List<CourseDTO> courses = new List<CourseDTO>();
-
-            foreach (var subscription in subscriptions)
+            switch (request.SortBy)
             {
-                Course course = appDbContext.Courses.FirstOrDefault(c => c.Id == subscription.CourseId);
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderBy(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderBy(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
+                    }
+            }
 
-                if (course == null)
-                {
-                    throw new InternalServerError();
-                }
+            return courses;
+        }
 
-                courses.Add(new CourseDTO
+        private IQueryable<Course> SortCoursesByDesc(FilterQuery request, IQueryable<Course> courses)
+        {
+            switch (request.SortBy)
+            {
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderByDescending(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderByDescending(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
+                    }
+            }
+
+            return courses;
+        }
+
+        public IQueryable<CourseDTO> FormCoursesDTOsFromCourses(IQueryable<Course> courses)
+        {
+            var coursesDTOs = new List<CourseDTO>();
+
+            foreach (var course in courses)
+            {
+                coursesDTOs.Add(new CourseDTO
                 {
                     Id = course.Id,
                     Title = course.Title,
@@ -135,90 +105,41 @@ namespace CoursesPlatform.Services.Commands
                 });
             }
 
-            return courses;
+            return coursesDTOs.AsQueryable();
         }
 
-        #endregion
-
-        #region private
-
-        private static IQueryable<CourseDTO> SortBySomethingASCSubs(FilterQuery.SortBy_enum sortBy, IQueryable<CourseDTO> courses)
+        public List<User> GetSubscribersByCourseId(int courseId)
         {
-            switch (sortBy)
+            var subscriptions = coursesQueries.GetUserSubscriptionsQueryByCourseId(courseId);
+
+            var users = new List<User>();
+
+            foreach (var subscription in subscriptions)
             {
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        return courses = courses.OrderBy(c => c.Description);
-                    }
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        return courses = courses.OrderBy(c => c.Title);
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort by !" });
-                    }
+                users.Add(userQueries.GetUserById(subscription.UserId));
             }
+
+            return users;
         }
 
-        private static IQueryable<CourseDTO> SortBySomethingDESCSubs(FilterQuery.SortBy_enum sortBy, IQueryable<CourseDTO> courses)
+        public List<CourseDTO> GetUserSubscriptions(string userId)
         {
-            switch (sortBy)
+            var subscriptions = coursesQueries.GetUserSubscriptionsById(userId);
+
+            var coursesDTOs = new List<CourseDTO>();
+
+            foreach (var course in subscriptions)
             {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        return courses = courses.OrderByDescending(c => c.Title);
-                    }
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        return courses = courses.OrderByDescending(c => c.Description);
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort by !" });
-                    }
+                coursesDTOs.Add(new CourseDTO
+                {
+                    Id = course.Id,
+                    Title = course.Title,
+                    Description = course.Description,
+                    ImageUrl = course.ImageUrl
+                });
             }
+
+            return coursesDTOs;
         }
-
-        private static IQueryable<Course> SortCoursesASCBySomething(FilterQuery.SortBy_enum sortBy, IQueryable<Course> courses)
-        {
-            switch (sortBy)
-            {
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        return courses = courses.OrderBy(c => c.CreateDate);
-                    }
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        return courses = courses.OrderBy(c => c.Title);
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort by type !" });
-                    }
-            }
-        }
-
-        private static IQueryable<Course> SortCoursesDESCBySomething(FilterQuery.SortBy_enum sortBy, IQueryable<Course> courses)
-        {
-            switch (sortBy)
-            {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        return courses = courses.OrderByDescending(c => c.Title);
-                    }
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        return courses = courses.OrderByDescending(c => c.CreateDate);
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid sort by type !" });
-                    }
-            }
-        }
-
-        #endregion
-
     }
 }

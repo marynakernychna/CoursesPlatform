@@ -27,12 +27,15 @@ using CoursesPlatform.Interfaces.Commands;
 using CoursesPlatform.Services.Commands;
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Utils;
+using CoursesPlatform.Interfaces.Queries;
+using CoursesPlatform.Services.Queries;
 
 namespace CoursesPlatform
 {
     public class Startup
     {
         public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -60,9 +63,7 @@ namespace CoursesPlatform
                 options.Password.RequireUppercase = false;
             });
 
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
-
-            string secureKey = "qUF6U9xyx943jk4TnY49nRV6WR2kRhhbwJZjRxG2Y77WnDLnPQ92aHT6jWjw9sfY3YcYsYjPHpSqZvuYd2yDK3z47n";
+            string secureKey = StringConstants.JwtTokenSecretKey;
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secureKey));
 
             services.AddAuthentication(options =>
@@ -107,12 +108,10 @@ namespace CoursesPlatform
             services.AddTransient<IValidator<EmailConfirmationRequest>, EmailConfirmationRequestValidator>();
 
             services.AddTransient<IValidator<FilterQuery>, FilterQueryValidator>();
-            services.AddTransient<IValidator<OnPageRequest>, StudentsOnPageRequestValidator>();
             services.AddTransient<IValidator<SearchStudentsRequest>, SearchStudentsRequestValidator>();
             services.AddTransient<IValidator<AddCourseRequest>, AddCourseRequestValidator>();
             services.AddTransient<IValidator<CourseDTO>, CourseDTOValidator>();
 
-            ///
             services.AddTransient<IValidator<EnrollCourseRequest>, EnrolCourseRequestValidator>();
             services.AddTransient<IValidator<UnsubscribeRequest>, UnsubscribeRequestValidator>();
 
@@ -122,21 +121,28 @@ namespace CoursesPlatform
             
             services.AddTransient<IValidator<StringRequest>, StringRequestValidator>();
             services.AddTransient<IValidator<TokenRequest>, TokenRequestValidator>();
+
             ///
+
             services.AddScoped<ICoursesCommands, CoursesCommands>();
+            services.AddScoped<IGeneralCommands, GeneralCommands>();
             services.AddScoped<IUsersCommands, UsersCommands>();
-            services.AddScoped<IHangfireService, HangfireService>();
-
-            services.AddScoped<IJwtUtils, JwtUtils>();
+            ///
+            services.AddScoped<ICoursesQueries, CourseQueries>();
+            services.AddScoped<IHangfireQueries, HangfireQueries>();
+            services.AddScoped<IRefreshTokenQueries, RefreshTokenQueries>();
+            services.AddScoped<IUserQueries, UserQueries>();
+            ///
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<ICourseService, CourseService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IUserAccessor, UserAccessor>();
-            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IBulkMailingService, BulkMailingService>();
-
+            services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IHangfireService, HangfireService>();
+            services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<ITemplateHelper, TemplateHelper>();
-
+            services.AddScoped<IUserAccessor, UserAccessor>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IUtils, Utils.Utils>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
@@ -191,7 +197,6 @@ namespace CoursesPlatform
             roleResult.Wait();
             roleResult = roleManager.CreateAsync(new IdentityRole("Student"));
             roleResult.Wait();
-
         }
     }
 }

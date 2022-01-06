@@ -1,19 +1,20 @@
-﻿using CoursesPlatform.EntityFramework.Models;
-using CoursesPlatform.Models.Facebook;
+﻿using CoursesPlatform.Models;
 using CoursesPlatform.Models.Users;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Interfaces
 {
     public interface IAuthService
     {
-        Task SignInAsync(User user, string password, bool lockoutOnFailure);
+        Task<AuthenticateResponse> LogInAsync(AuthenticateRequest request, string ipAddress);
 
-        Task RegisterUser(User user, string password);
+        Task RegisterUserAsync(RegisterRequest request, HttpRequest httpRequest);
 
-        User CreateNewUserModel(RegisterRequest request);
-		
-		Task<FacebookAccount> GetUserFromFacebookAsync(string facebookToken);
+        Task<AuthenticateResponse> LogInViaFacebookAsync(StringRequest facebookToken, string ipAddress);
+
+        Task ConfirmEmailAsync(EmailConfirmationRequest request);
+
+        Task<string> RefreshAccessTokenAsync(TokenRequest request);
     }
 }

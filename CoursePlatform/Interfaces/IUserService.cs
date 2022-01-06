@@ -1,48 +1,22 @@
-﻿using CoursesPlatform.EntityFramework.Models;
-using CoursesPlatform.Models.Courses;
+﻿using CoursesPlatform.Models;
 using CoursesPlatform.Models.Users;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Interfaces
 {
     public interface IUserService
     {
-        #region get
+        StudentsOnPage GetStudentsOnPage(GetCurrentPageRequest request);
 
-        //Task<List<StudentDTO>> GetStudents();
+        Task EditUserAsync(EditUserRequest request, string ipAddress, HttpRequest httpRequest);
 
-        string GetUserIdByEmail(string email);
-
-        string GetUserEmailById(string userId);
-
-        User GetUserById(string id);
-
-        User GetUserByEmail(string email);
+        Task DeleteUserAsync(StringRequest request, string ipAddress);
 
         UserDTO GetProfileInfo(string userId);
 
-        StudentsOnPage GetStudentsOnPage(OnPageRequest request);
+        Task EditProfileInfoAsync(EditProfileRequest request);
 
-        #endregion
-
-        #region change
-
-        void EditUser(UserDTO newInfo, User oldInfo);
-
-        void DeleteUser(User user);
-
-        #endregion
-
-        #region check
-
-        bool CheckIsUserExistsByEmail(string email);
-
-        #endregion
-
-        //Task<StudentsOnPage> SearchByText(SearchStudentsRequest request);
-
-        void EdiProfile(EditProfileRequest newInfo, User currentInfo);
-
+        Task ChangePasswordAsync(ChangePasswordRequest request, string userId);
     }
 }

@@ -6,6 +6,7 @@ namespace CoursesPlatform.Models
     {
         public string Value { get; set; }
     }
+
     public class StringRequestValidator : AbstractValidator<StringRequest>
     {
         public StringRequestValidator()

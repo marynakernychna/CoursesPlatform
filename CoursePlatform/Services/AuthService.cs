@@ -1,98 +1,161 @@
-﻿using CoursesPlatform.EntityFramework;
-using CoursesPlatform.EntityFramework.Models;
+﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.Interfaces;
-using CoursesPlatform.Models.Facebook;
+using CoursesPlatform.Interfaces.Commands;
+using CoursesPlatform.Interfaces.Queries;
+using CoursesPlatform.Models;
 using CoursesPlatform.Models.Users;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Services
 {
     public class AuthService : IAuthService
     {
-        private AppDbContext appDbContext;
         private readonly UserManager<User> userManager;
-        private readonly SignInManager<User> signInManager;
         private readonly IJwtUtils jwtUtils;
-        private readonly IHttpClientFactory httpClientFactory;
+        private readonly IUserQueries userQueries;
+        private readonly IUsersCommands usersCommands;
+        private readonly IEmailService emailService;
+        private readonly IUtils utils;
 
-        public AuthService(AppDbContext appDbContext,
-                           UserManager<User> userManager,
+        public AuthService(UserManager<User> userManager,
                            IJwtUtils jwtUtils,
-                           IHttpClientFactory httpClientFactory,
-                           SignInManager<User> signInManager)
+                           IUserQueries userQueries,
+                           IUsersCommands usersCommands,
+                           IEmailService emailService,
+                           IUtils utils)
         {
-            this.appDbContext = appDbContext;
-            this.signInManager = signInManager;
             this.userManager = userManager;
-            this.httpClientFactory = httpClientFactory;
             this.jwtUtils = jwtUtils;
+            this.userQueries = userQueries;
+            this.usersCommands = usersCommands;
+            this.emailService = emailService;
+            this.utils = utils;
         }
 
-        public async Task SignInAsync(User user, string password, bool lockoutOnFailure)
+        public async Task<AuthenticateResponse> LogInAsync(AuthenticateRequest request, string ipAddress)
         {
-            var result = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure);
+            var user = userQueries.GetUserByEmail(request.Email);
 
-            if (!result.Succeeded)
+            await usersCommands.SignInAsync(user, request.Password, false);
+
+            if (!user.EmailConfirmed)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid login or password !" });
-            }
-        }
-
-        public async Task RegisterUser(User user, string password)
-        {
-            IdentityResult result = await userManager.CreateAsync(user, password);
-
-            if (!result.Succeeded)
-            {
-                throw new InternalServerError();
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Email is not confirmed!" });
             }
 
-            result = await userManager.AddToRoleAsync(user, "Student");
+            var accessToken = await jwtUtils.GenerateAccessTokenAsync(user);
 
-            if (!result.Succeeded)
+            var isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
+
+            string refreshToken = null;
+
+            if (isRefreshTokenActive)
             {
-                throw new InternalServerError();
+                refreshToken = jwtUtils.GetRefreshToken(user);
+            }
+            else
+            {
+                var newRefreshToken = jwtUtils.GenerateRefreshToken(ipAddress);
+
+                jwtUtils.SaveRefreshToken(newRefreshToken, user);
+
+                refreshToken = newRefreshToken.Token;
             }
 
-            appDbContext.SaveChanges();
-        }
-
-        public User CreateNewUserModel(RegisterRequest request)
-        {
-            return new User
+            return new AuthenticateResponse
             {
-                UserName = request.Email,
-                Email = request.Email,
-                Birthday = request.Birthday,
-                Surname = request.Surname,
-                Name = request.Name,
-                RegisteredDate = DateTime.Now
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
             };
         }
 
-        public async Task<FacebookAccount> GetUserFromFacebookAsync(string facebookToken)
+        public async Task RegisterUserAsync(RegisterRequest request, HttpRequest httpRequest)
         {
-            string facebookGraphUrl = $"https://graph.facebook.com/v4.0/me?access_token={facebookToken}&fields=email,first_name,last_name";
+            var isEmailExists = userQueries.CheckIsUserExistsByEmail(request.Email);
 
-            var httpClient = httpClientFactory.CreateClient();
-            var response = await httpClient.GetAsync(facebookGraphUrl);
-
-            if (!response.IsSuccessStatusCode)
+            if (isEmailExists)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Response wasn't success!" });
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "There is already a user with this email!" });
             }
 
-            var result = await response.Content.ReadAsStringAsync();
-            var facebookAccount = JsonConvert.DeserializeObject<FacebookAccount>(result);
+            var user = usersCommands.CreateNewUserModel(request);
 
-            return facebookAccount;
+            await userQueries.RegisterStudentAsync(user, request.Password);
+
+            await emailService.SendConfirmationEmailAsync(user);
+        }
+
+        public async Task<AuthenticateResponse> LogInViaFacebookAsync(StringRequest facebookToken, string ipAddress)
+        {
+            var facebookUser = await usersCommands.GetUserFromFacebookAsync(facebookToken.Value);
+
+            var isEmailExists = userQueries.CheckIsUserExistsByEmail(facebookUser.Email);
+
+            User user = null;
+
+            if (!isEmailExists)
+            {
+                var password = utils.GenerateRandomPassword();
+
+                user = usersCommands.CreateNewUserModel(new RegisterRequest
+                {
+                    Name = facebookUser.FirstName,
+                    Surname = facebookUser.LastName,
+                    Email = facebookUser.Email,
+                    Birthday = DateTime.UtcNow,
+                    Password = password
+                });
+
+                await userQueries.RegisterStudentAsync(user, password);
+            }
+            else
+            {
+                user = userQueries.GetUserByEmail(facebookUser.Email);
+            }
+
+            var accessToken = await jwtUtils.GenerateAccessTokenAsync(user);
+
+            var isRefreshTokenActive = jwtUtils.CheckIsUserHasActiveRefreshToken(user);
+
+            string refreshToken = null;
+
+            if (isRefreshTokenActive)
+            {
+                refreshToken = jwtUtils.GetRefreshToken(user);
+            }
+            else
+            {
+                var newRefreshToken = jwtUtils.GenerateRefreshToken(ipAddress);
+
+                jwtUtils.SaveRefreshToken(newRefreshToken, user);
+
+                refreshToken = newRefreshToken.Token;
+            }
+
+            return new AuthenticateResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+        }
+
+        public async Task ConfirmEmailAsync(EmailConfirmationRequest request)
+        {
+            var user = userQueries.GetUserByEmail(request.Email);
+
+            await userManager.ConfirmEmailAsync(user, request.Token);
+        }
+
+        public async Task<string> RefreshAccessTokenAsync(TokenRequest request)
+        {
+            var user = jwtUtils.GetUserByRefreshToken(request.Token);
+
+            return await jwtUtils.GenerateAccessTokenAsync(user);
         }
     }
 }

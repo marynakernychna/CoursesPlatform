@@ -4,11 +4,9 @@ using CoursesPlatform.Interfaces;
 using CoursesPlatform.Models.Courses;
 using CoursesPlatform.Models.Razor;
 using CoursesPlatform.Models.Users;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using System;
 using System.Threading.Tasks;
 
 namespace CoursesPlatform.Services
@@ -25,24 +23,23 @@ namespace CoursesPlatform.Services
             this.userManager = userManager;
         }
 
-        public async Task SendConfirmationEmail(HttpRequest request, User user)
+        public async Task SendConfirmationEmailAsync(User user)
         {
-            string confirmationToken = userManager.GenerateEmailConfirmationTokenAsync(user).Result;
+            var confirmationToken = userManager.GenerateEmailConfirmationTokenAsync(user).Result;
 
-            var callbackUrl = $"https://localhost:3000/emailConfirmation";
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<ConfirmationEmail>(
                 "ConfirmationEmail",
                 new ConfirmationEmail
                 {
                     Name = user.Name,
                     Surname = user.Surname,
-                    Link = callbackUrl + "/" + confirmationToken + "/" + user.Email
+                    Link = StringConstants.CallbackUrl + "/" + confirmationToken + "/" + user.Email
                 });
 
-            await SendEmail(user.Email, "Confirm your account", message);
+            await SendEmailAsync(user.Email, "Confirm your account", message);
         }
 
-        public async Task SendCourseEditingNotificationEmail(CourseDTO newInfo, string oldTitle, string oldDescription, User user)
+        public async Task SendCourseEditingNotificationEmailAsync(CourseDTO newInfo, string oldTitle, string oldDescription, User user)
         {
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<CourseEditingEmail>(
             "CourseEditingEmail",
@@ -56,10 +53,10 @@ namespace CoursesPlatform.Services
                 User = user
             });
 
-            await SendEmail(user.Email, "Change of course information", message);
+            await SendEmailAsync(user.Email, "Change of course information", message);
         }
 
-        public async Task SendUserInfoChangingNotificationEmail(User newInfo, UserDTO oldInfo)
+        public async Task SendUserInfoChangingNotificationEmailAsync(User newInfo, UserDTO oldInfo)
         {
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<UserInfoChangingEmail>(
             "UserInfoChangingEmail",
@@ -69,10 +66,10 @@ namespace CoursesPlatform.Services
                NewInfo = newInfo
             });
 
-            await SendEmail(oldInfo.Email, "Profile info was changed", message);
+            await SendEmailAsync(oldInfo.Email, "Profile info was changed", message);
         }
 
-        public async Task SendCourseRemovalNotificationEmail(string courseTitle, User user)
+        public async Task SendCourseRemovalNotificationEmailAsync(string courseTitle, User user)
         {
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<CourseRemovalEmail>(
             "CourseRemovalEmail",
@@ -83,27 +80,10 @@ namespace CoursesPlatform.Services
                 CourseTitle = courseTitle
             });
 
-            await SendEmail(user.Email, "Subscription cancellation", message);
+            await SendEmailAsync(user.Email, "Subscription cancellation", message);
         }
 
-        public async Task SendEmail(string email, string subject, string message)
-        {
-            var apiKey = "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";
-            var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("markkernychny@gmail.com", "no-reply");
-            var to = new EmailAddress(email, email);
-            var plainTextContent = "";
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, message);
-
-            var result = await client.SendEmailAsync(msg);
-
-            if (!result.IsSuccessStatusCode)
-            {
-                throw new InternalServerError();
-            }
-        }
-
-        public async Task SendAccountRemovalNotificationEmail(UserDTO user)
+        public async Task SendAccountRemovalNotificationEmailAsync(UserDTO user)
         {
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<AccountRemovalEmail>(
             "AccountRemovalEmail",
@@ -112,7 +92,23 @@ namespace CoursesPlatform.Services
                 User = user
             });
 
-            await SendEmail(user.Email, "Account removal", message);
+            await SendEmailAsync(user.Email, "Account removal", message);
+        }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
+        {
+            var client = new SendGridClient(StringConstants.SendGridKey);
+            var from = new EmailAddress(StringConstants.SendGridEmail, StringConstants.SendGridSenderName);
+            var to = new EmailAddress(email, email);
+            var plainTextContent = "";
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, message);
+
+            var result = await client.SendEmailAsync(msg);
+
+            if (!result.IsSuccessStatusCode)
+            {
+                throw new RestException(System.Net.HttpStatusCode.InternalServerError, new { Message = "Failed to send message!" });
+            }
         }
     }
 }

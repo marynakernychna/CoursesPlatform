@@ -1,314 +1,159 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System;
 using System.Threading.Tasks;
-using System.Net;
 using CoursesPlatform.Interfaces;
-using CoursesPlatform.EntityFramework;
 using CoursesPlatform.Interfaces.Commands;
 using CoursesPlatform.Models.Courses;
 using CoursesPlatform.EntityFramework.Models;
-using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.Models.Users;
+using CoursesPlatform.Interfaces.Queries;
 
 namespace CoursesPlatform.Services
 {
     public class CourseService : ICourseService
     {
-        private AppDbContext appDbContext;
         private readonly IUserAccessor userAccessor;
+
         private readonly ICoursesCommands coursesCommands;
+        private readonly IGeneralCommands generalCommands;
+
+        private readonly ICoursesQueries coursesQueries;
+        private readonly IUserQueries userQueries;
+
         private readonly IHangfireService hangfireService;
         private readonly IBulkMailingService bulkMailingService;
-        private readonly IUserService userService;
 
-        public CourseService(AppDbContext appDbContext,
-                             IUserAccessor userAccessor,
+        public CourseService(IUserAccessor userAccessor,
                              ICoursesCommands coursesCommands,
                              IHangfireService hangfireService,
-                             IUserService userService,
-                             IBulkMailingService bulkMailingService)
+                             IBulkMailingService bulkMailingService,
+                             ICoursesQueries coursesQueries,
+                             IGeneralCommands generalCommands,
+                             IUserQueries userQueries)
         {
-            this.appDbContext = appDbContext;
             this.userAccessor = userAccessor;
             this.coursesCommands = coursesCommands;
+            this.generalCommands = generalCommands;
+            this.coursesQueries = coursesQueries;
+            this.userQueries = userQueries;
             this.hangfireService = hangfireService;
             this.bulkMailingService = bulkMailingService;
-            this.userService = userService;
         }
 
-        #region on Page
-
-        public CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request)
+        public CoursesOnPageResponse GetCoursesOnAdminPage(GetCurrentPageRequest request)
         {
-            IQueryable<Course> allCoursesQuery = appDbContext.Courses.AsQueryable();
+            var courses = coursesQueries.GetAllCourses();
 
-            IQueryable<Course> sortedCourses = coursesCommands.SortCourses(request, allCoursesQuery);
+            if (!string.IsNullOrWhiteSpace(request.SearchText))
+            {
+                courses = coursesQueries.SearchTextInCourses(request.SearchText.ToLower(), courses);
+            }
 
-            int totalCount = allCoursesQuery.Count();
+            courses = coursesCommands.SortCoursesByDirection(request.FilterQuery, courses);
 
             return new CoursesOnPageResponse
             {
-                TotalCount = totalCount,
-                Courses = coursesCommands.GetCoursesOnPage(request, sortedCourses)
+                TotalCount = courses.Count(),
+                Courses = generalCommands.GetElementsOnPage(request.FilterQuery, courses).ToList()
+            };
+        }
+
+        public CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request)
+        {
+            var courses = coursesQueries.GetAllCourses();
+
+            courses = coursesCommands.SortCoursesByDirection(request, courses);
+
+            return new CoursesOnPageResponse
+            {
+                TotalCount = courses.Count(),
+                Courses = generalCommands.GetElementsOnPage(request, courses).ToList()
             };
         }
 
         public SubscriptionsOnPage SortAndGetUserSubscriptionsOnPage(FilterQuery request)
         {
-            string userId = userAccessor.GetCurrentUserId();
+            var userId = userAccessor.GetCurrentUserId();
 
-            List<CourseDTO> subscriptions = coursesCommands.GetUserSubscriptions(userId);
+            var subscriptions = coursesQueries.GetUserSubscriptionsById(userId);
 
-            IQueryable<CourseDTO> sortedSubscriptions = coursesCommands.SortSubscriptions(request, subscriptions.AsQueryable());
+            subscriptions = coursesCommands.SortCoursesByDirection(request, subscriptions);
 
-            int totalCount = subscriptions.Count();
+            var courses = coursesCommands.FormCoursesDTOsFromCourses(subscriptions);
+
+            int totalCount = courses.Count();
 
             return new SubscriptionsOnPage
             {
                 TotalCount = totalCount,
-                Subscriptions = coursesCommands.GetUserSubscriptionsOnPage(request, sortedSubscriptions)
+                Subscriptions = generalCommands.GetElementsOnPage(request, courses).ToList()
             };
         }
-
-        public CoursesOnPageResponse GetCoursesOnPageAdmin(OnPageRequest request)
-        {
-            var courses = appDbContext.Courses.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(request.SearchText))
-            {
-                courses = Search(request.SearchText.ToLower(), courses);
-            }
-
-            int totalCount = courses.Count();
-
-            courses = SortByDirection(request, courses);
-
-            return new CoursesOnPageResponse
-            {
-                TotalCount = totalCount,
-                Courses = coursesCommands.GetCoursesOnPage(request.FilterQuery, courses)
-            };
-        }
-
-        private IQueryable<Course> Search(string searchText, IQueryable<Course> courses)
-        {
-            return courses.Where(u => u.Title.ToLower().Contains(searchText) ||
-                                      u.Description.ToLower().Contains(searchText));
-        }
-
-        private static IQueryable<Course> SortByDirection(OnPageRequest request, IQueryable<Course> courses)
-        {
-            switch (request.FilterQuery.SortDirection)
-            {
-                case Models.Courses.FilterQuery.SortDirection_enum.ASC:
-                    {
-                        courses = SortByAsc(request, courses);
-                        break;
-                    }
-                case Models.Courses.FilterQuery.SortDirection_enum.DESC:
-                    {
-                        courses = SortByDesc(request, courses);
-                        break;
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
-                    }
-            }
-
-            return courses;
-        }
-
-        private static IQueryable<Course> SortByAsc(OnPageRequest request, IQueryable<Course> courses)
-        {
-            switch (request.FilterQuery.SortBy)
-            {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        courses = courses.OrderBy(s => s.Title);
-                    }
-                    break;
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        courses = courses.OrderBy(s => s.CreateDate);
-                    }
-                    break;
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
-                    }
-            }
-
-            return courses;
-        }
-
-        private static IQueryable<Course> SortByDesc(OnPageRequest request, IQueryable<Course> courses)
-        {
-            switch (request.FilterQuery.SortBy)
-            {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        courses = courses.OrderByDescending(s => s.Title);
-                    }
-                    break;
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        courses = courses.OrderByDescending(s => s.CreateDate);
-                    }
-                    break;
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is missing!" });
-                    }
-            }
-
-            return courses;
-        }
-
-        #endregion
-
-        #region change
 
         public void AddCourse(AddCourseRequest course)
         {
-            Course newCourse = new Course()
+            coursesQueries.AddCourse(new Course
             {
                 Title = course.Title,
                 Description = course.Description,
                 ImageUrl = course.ImageUrl,
                 CreateDate = DateTime.UtcNow
-            };
-
-            appDbContext.Courses.Add(newCourse);
-
-            appDbContext.SaveChanges();
+            });
         }
 
-        public async Task EditCourse(CourseDTO newInfo, Course oldInfo)
+        public Course GetCourseById(int id)
         {
-            List<User> courseSubscribers = GetSubscribersByCourseId(newInfo.Id);
+            return coursesQueries.GetCourseById(id);
+        }
 
-            string oldTitle = oldInfo.Title;
-            string oldDescription = oldInfo.Description;
+        public bool CheckIsOldUserInfoIsEqualToOld(Course oldInfo, CourseDTO newInfo)
+        {
+            return oldInfo.Title == newInfo.Title &&
+                   oldInfo.Description == newInfo.Description &&
+                   oldInfo.ImageUrl == newInfo.ImageUrl;
+        }
 
-            Course course = GetCourseById(newInfo.Id);
+        public async Task EditCourseAsync(CourseDTO newInfo, Course oldInfo)
+        {
+            var courseSubscribers = coursesCommands.GetSubscribersByCourseId(newInfo.Id);
 
-            course.Title = newInfo.Title;
-            course.Description = newInfo.Description;
-            course.ImageUrl = newInfo.ImageUrl;
+            var oldTitle = oldInfo.Title;
+            var oldDescription = oldInfo.Description;
 
-            appDbContext.SaveChanges();
+            var course = coursesQueries.GetCourseById(newInfo.Id);
+
+            coursesQueries.UpdateCourse(course, newInfo);
 
             if (courseSubscribers.Count > 0)
             {
-                await bulkMailingService.SendCourseEditingNotificationEmails(courseSubscribers, newInfo, oldTitle, oldDescription);
+                await bulkMailingService.SendCourseEditingNotificationEmailsAsync(courseSubscribers, newInfo, oldTitle, oldDescription);
             }
         }
 
-        public void AddNewSubscription(UserSubscriptions subscription)
+        public async Task DeleteCourseByIdAsync(int courseId)
         {
-            appDbContext.UsersSubscriptions.Add(subscription);
-            appDbContext.SaveChanges();
+            var courseSubscribers = coursesCommands.GetSubscribersByCourseId(courseId);
 
-            string userEmail = userService.GetUserEmailById(subscription.UserId);
-
-            string courseTitle = GetCourseById(subscription.CourseId).Title;
-
-            hangfireService.SetCourseStartNotifications(subscription, userEmail, courseTitle);
-        }
-
-        public void UnsubscribeFromCourse(string userId, int courseId)
-        {
-            var subscriptionId = GetUserSubscription(userId, courseId).Id;
-
-            hangfireService.DeleteCourseStartNotifications(subscriptionId);
-
-            coursesCommands.UnsubscribeFromCourse(userId, courseId);
-        }
-
-        public async Task DeleteCourseById(int courseId)
-        {
-            List<User> courseSubscribers = GetSubscribersByCourseId(courseId);
-
-            Course course = GetCourseById(courseId);
+            var course = coursesQueries.GetCourseById(courseId);
 
             if (courseSubscribers.Count > 0)
             {
-                await bulkMailingService.SendCourseRemovalNotificationEmails(courseSubscribers, course.Title);
+                await bulkMailingService.SendCourseRemovalNotificationEmailsAsync(courseSubscribers, course.Title);
             }
 
-            appDbContext.Courses.Remove(course);
-            appDbContext.SaveChanges();
-        }
-
-        #endregion
-
-        #region check
-
-        public bool CheckIsCourseExistsById(int courseId)
-        {
-            return appDbContext.Courses.FirstOrDefault(c => c.Id == courseId) != null;
+            coursesQueries.RemoveCourse(course);
         }
 
         public bool CheckIsSubscriptionExists(int courseId, string userId)
         {
-            return appDbContext.UsersSubscriptions
-                               .FirstOrDefault(s => s.CourseId == courseId && s.UserId == userId) != null;
+            return coursesQueries.CheckIsSubscriptionExists(courseId, userId);
         }
 
-        #endregion
-
-        #region get by
-
-        public Course GetCourseById(int id)
+        public UserSubscriptions CreateNewSubscriptionModel(string userId, int courseId, DateTime startDate)
         {
-            var course = appDbContext.Courses.FirstOrDefault(c => c.Id == id);
+            var user = userQueries.GetUserById(userId);
+            var course = coursesQueries.GetCourseById(courseId);
 
-            if (course == null)
-            {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Course not found !" });
-            }
-
-            return course;
-        }
-
-        #endregion
-
-        #region get
-
-        public List<User> GetSubscribersByCourseId(int courseId)
-        {
-            var subscriptions = coursesCommands.GetUserSubscriptionsQueryByCourseId(courseId);
-
-            List<User> users = new List<User>();
-
-            foreach (var item in subscriptions)
-            {
-                var user = userService.GetUserById(item.UserId);
-
-                users.Add(user);
-            }
-
-            return users;
-        }
-
-        public List<Course> GetCoursesOnPageAdmin()
-        {
-            return appDbContext.Courses.ToList();
-        }
-
-        private UserSubscriptions GetUserSubscription(string userId, int courseId)
-        {
-            return appDbContext.UsersSubscriptions.SingleOrDefault(s => s.UserId == userId && s.CourseId == courseId);
-        }
-
-        #endregion
-
-        #region form
-
-        public UserSubscriptions CreateNewSubscriptionModel(DateTime startDate, User user, Course course)
-        {
             return new UserSubscriptions()
             {
                 CourseId = course.Id,
@@ -319,10 +164,29 @@ namespace CoursesPlatform.Services
             };
         }
 
-        #endregion
+        public void AddNewSubscription(UserSubscriptions subscription)
+        {
+            coursesQueries.AddSubscription(subscription);
 
-        #region not labeled
+            var userEmail = userQueries.GetUserEmailById(subscription.UserId);
 
-        #endregion
+            var courseTitle = coursesQueries.GetCourseById(subscription.CourseId).Title;
+
+            hangfireService.SetCourseStartNotifications(subscription, userEmail, courseTitle);
+        }
+
+        public bool CheckIsCourseExistsById(int courseId)
+        {
+            return coursesQueries.CheckIsCourseExistsById(courseId);
+        }
+
+        public void UnsubscribeFromCourse(string userId, int courseId)
+        {
+            var subscription = coursesQueries.GetUserSubscription(userId, courseId);
+
+            hangfireService.DeleteCourseStartNotifications(subscription.Id);
+
+            coursesQueries.RemoveUserSubscription(subscription);
+        }
     }
 }

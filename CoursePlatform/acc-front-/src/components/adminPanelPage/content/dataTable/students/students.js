@@ -78,6 +78,7 @@ class Students extends React.Component {
                 "sortBy": this.state.sortBy
             }
         }
+        console.log(model);
 
         usersService.getStudents(model)
             .then((response) => {
@@ -114,7 +115,7 @@ class Students extends React.Component {
                 setTotalCount(response.data.totalCount);
             },
                 err => {
-
+console.log(err.response);
                     clearTotalCount();
                     this.setWarningAlert();
                 })

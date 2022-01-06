@@ -16,12 +16,12 @@ namespace CoursesPlatform.Helpers
 
         public string GetCurrentUserId()
         {
-            string id = httpContextAccessor.HttpContext.User?.Claims?
-                                                             .FirstOrDefault(x => x.Type == "id")?.Value;
+            var id = httpContextAccessor.HttpContext.User?.Claims?
+                                                          .FirstOrDefault(x => x.Type == "id")?.Value;
 
             if (string.IsNullOrEmpty(id))
             {
-                throw new InternalServerError();
+                throw new RestException(System.Net.HttpStatusCode.InternalServerError, new { Message = "Failed to identify user!" });
             }
 
             return id;

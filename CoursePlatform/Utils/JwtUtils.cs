@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using CoursesPlatform.EntityFramework;
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using System;
@@ -12,33 +11,30 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using CoursesPlatform.Interfaces;
+using System.Threading.Tasks;
+using CoursesPlatform.Interfaces.Queries;
 
 namespace CoursesPlatform.Utils
 {
     public class JwtUtils : IJwtUtils
     {
         private readonly UserManager<User> userManager;
-        private AppDbContext appDbContext;
+        private readonly IRefreshTokenQueries refreshTokenQueries;
 
         public JwtUtils(UserManager<User> userManager,
-                        AppDbContext appDbContext)
+                        IRefreshTokenQueries refreshTokenQueries)
         {
             this.userManager = userManager;
-            this.appDbContext = appDbContext;
+            this.refreshTokenQueries = refreshTokenQueries;
         }
 
-        public bool CheckIsUserHasActiveRefreshToken(User user)
+        public async Task<string> GenerateAccessTokenAsync(User user)
         {
-            return user.RefreshTokens.FirstOrDefault(t => t.IsActive) != null;
-        }
-
-        public string GenerateAccessToken(User user)
-        {
-            var roles = userManager.GetRolesAsync(user).Result;
+            var roles = await userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>()
             {
-                new Claim("id", user.Id.ToString()),
+                new Claim("id", user.Id),
                 new Claim("email", user.Email)
             };
 
@@ -47,14 +43,12 @@ namespace CoursesPlatform.Utils
                 claims.Add(new Claim("roles", role));
             }
 
-            string jwtTokenSecretKey = "qUF6U9xyx943jk4TnY49nRV6WR2kRhhbwJZjRxG2Y77WnDLnPQ92aHT6jWjw9sfY3YcYsYjPHpSqZvuYd2yDK3z47n";
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenSecretKey));
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(StringConstants.JwtTokenSecretKey));
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
             var jwt = new JwtSecurityToken(
                                             signingCredentials: signingCredentials,
                                             claims: claims,
-                                            expires: DateTime.Now.AddSeconds(20)
+                                            expires: DateTime.Now.AddHours(3)
                                           );
 
             return new JwtSecurityTokenHandler().WriteToken(jwt);
@@ -69,12 +63,52 @@ namespace CoursesPlatform.Utils
             var refreshToken = new RefreshToken
             {
                 Token = Convert.ToBase64String(randomBytes),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(3),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
 
             return refreshToken;
+        }
+
+        private void RevokeRefreshToken(string token, string ipAddress)
+        {
+            var user = refreshTokenQueries.GetUserByRefreshToken(token);
+            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+            if (!refreshToken.IsActive)
+            {
+                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid token!" });
+            }
+
+            refreshTokenQueries.RevokeRefreshToken(user, refreshToken, ipAddress, "Revoked without replacement");
+        }
+
+        public void RevokeAccess(User user, string ipAddress)
+        {
+            bool isUserHasActiveRefreshToken = refreshTokenQueries.CheckIsUserHasActiveRefreshToken(user);
+
+            if (isUserHasActiveRefreshToken)
+            {
+                var refreshToken = refreshTokenQueries.GetRefreshToken(user);
+
+                RevokeRefreshToken(refreshToken, ipAddress);
+            }
+        }
+
+        public void SaveRefreshToken(RefreshToken token, User user)
+        {
+            refreshTokenQueries.SaveRefreshToken(token, user);
+        }
+
+        public bool CheckIsUserHasActiveRefreshToken(User user)
+        {
+            if (user.RefreshTokens == null)
+            {
+                return false;
+            }
+
+            return user.RefreshTokens.FirstOrDefault(t => t.IsActive) != null;
         }
 
         public string GetRefreshToken(User user)
@@ -83,65 +117,15 @@ namespace CoursesPlatform.Utils
 
             if (refreshToken == null)
             {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "No active refresh token !" });
+                throw new RestException(HttpStatusCode.NotFound, new { Message = "Active refresh token not found!" });
             }
 
             return refreshToken.Token;
         }
 
-        public void RevokeRefreshToken(string token, string ipAddress)
-        {
-            var user = GetUserByRefreshToken(token);
-            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
-
-            if (!refreshToken.IsActive)
-            {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid token" });
-            }
-
-            RevokeRefreshToken(refreshToken, ipAddress, "Revoked without replacement");
-
-            appDbContext.Update(user);
-            appDbContext.SaveChanges();
-        }
-
-        private void RevokeRefreshToken(RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null)
-        {
-            token.Revoked = DateTime.UtcNow;
-            token.RevokedByIp = ipAddress;
-            token.ReasonRevoked = reason;
-            token.ReplacedByToken = replacedByToken;
-        }
-
-        public void SaveRefreshToken(RefreshToken token, User user)
-        {
-            user.RefreshTokens.Add(token);
-
-            appDbContext.Update(user);
-            appDbContext.SaveChanges();
-        }
-
         public User GetUserByRefreshToken(string token)
         {
-            var user = appDbContext.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-
-            if (user == null)
-            {
-                throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid token !" });
-            }
-
-            return user;
-        }
-
-        public void RevokeAccess(User user, string ipAddress)
-        {
-            bool isUserHasActiveRefreshToken = CheckIsUserHasActiveRefreshToken(user);
-
-            if (isUserHasActiveRefreshToken)
-            {
-                var refreshToken = GetRefreshToken(user);
-                RevokeRefreshToken(refreshToken, ipAddress);
-            }
+            return refreshTokenQueries.GetUserByRefreshToken(token);
         }
     }
 }

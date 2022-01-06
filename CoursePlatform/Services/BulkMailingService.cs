@@ -15,19 +15,19 @@ namespace CoursesPlatform.Services
             this.emailService = emailService;
         }
 
-        public async Task SendCourseRemovalNotificationEmails(List<User> subscribers, string courseTitle)
+        public async Task SendCourseRemovalNotificationEmailsAsync(List<User> subscribers, string courseTitle)
         {
             foreach (var user in subscribers)
             {
-                await emailService.SendCourseRemovalNotificationEmail(courseTitle, user);
+                await emailService.SendCourseRemovalNotificationEmailAsync(courseTitle, user);
             }
         }
 
-        public async Task SendCourseEditingNotificationEmails(List<User> subscribers, CourseDTO newInfo, string oldTitle, string oldDescription)
+        public async Task SendCourseEditingNotificationEmailsAsync(List<User> subscribers, CourseDTO newInfo, string oldTitle, string oldDescription)
         {
             foreach (var user in subscribers)
             {
-                await emailService.SendCourseEditingNotificationEmail(newInfo, oldTitle, oldDescription, user);
+                await emailService.SendCourseEditingNotificationEmailAsync(newInfo, oldTitle, oldDescription, user);
             }
         }
     }

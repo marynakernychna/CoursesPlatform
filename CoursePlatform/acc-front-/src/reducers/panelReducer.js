@@ -166,13 +166,14 @@ const panelReducer = (state = intialState, action) => {
 
         case types.REMOVE_STUDENT: {
 
-            var elementIndex = state.data.indexOf(action.payload);
+            // var elementIndex = state.data.indexOf(action.payload);
 
-            state.data.splice(elementIndex, 1);
+            // state.data.splice(elementIndex, 1);
 
             return {
                 ...state,
-                data: [...state.data]
+                // data: [...state.data],
+                isSortingChanged: true
             }
         }
 

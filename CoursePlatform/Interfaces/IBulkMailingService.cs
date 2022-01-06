@@ -7,8 +7,8 @@ namespace CoursesPlatform.Interfaces
 {
     public interface IBulkMailingService
     {
-        Task SendCourseRemovalNotificationEmails(List<User> subscribers, string courseTitle);
+        Task SendCourseRemovalNotificationEmailsAsync(List<User> subscribers, string courseTitle);
 
-        Task SendCourseEditingNotificationEmails(List<User> subscribers, CourseDTO newInfo, string oldTitle, string oldDescription);
+        Task SendCourseEditingNotificationEmailsAsync(List<User> subscribers, CourseDTO newInfo, string oldTitle, string oldDescription);
     }
 }
