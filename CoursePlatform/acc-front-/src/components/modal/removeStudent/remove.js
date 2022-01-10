@@ -40,8 +40,7 @@ class RemoveStudent extends React.Component {
             startLoading,
             finishLoading,
             setAlert,
-            removeStudent,
-            updateAccess
+            removeStudent
         } = this.props;
 
         startLoading();
@@ -63,40 +62,11 @@ class RemoveStudent extends React.Component {
                 removeStudent(this.props.info);
             },
                 err => {
+                    setAlert({
+                        type: alertTypes.WARNING,
+                        message: err.response.data.errors.message
+                    });
 
-                    if (err.response == undefined) {
-
-                        var model = {
-                            token: window.localStorage.getItem('refreshToken')
-                        }
-
-                        authService.refreshTokens(model)
-                            .then((response) => {
-
-                                updateAccess(response.data);
-                            },
-                                err => {
-
-                                    setAlert({
-                                        type: alertTypes.WARNING,
-                                        message: "Server error. Try again !"
-                                    });
-                                })
-                            .catch(err => {
-
-                                setAlert({
-                                    type: alertTypes.WARNING,
-                                    message: "Server error. Try again !"
-                                });
-                            });
-                    }
-                    else {
-                        setAlert({
-                            type: alertTypes.WARNING,
-                            message: "Server error. Try again !"
-                        });
-                    }
-                    
                 })
             .catch(err => {
                 console.log("Frontend error", err);

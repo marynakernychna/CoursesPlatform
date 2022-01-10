@@ -50,7 +50,7 @@ class Unsubscribe extends React.Component {
         }
 
         this.closeModal();
-
+console.log(request, this.props);
         coursesService.unsubscribe(request)
             .then(() => {
 
@@ -62,11 +62,11 @@ class Unsubscribe extends React.Component {
                 setIsElementsChanged();
             },
                 err => {
+                    console.log(err.response.data);
 
                     this.setWarningAlert();                    
                 })
             .catch(err => {
-                
                 this.setWarningAlert();
             })
             .finally(() => {

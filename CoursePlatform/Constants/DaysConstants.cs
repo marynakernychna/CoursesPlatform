@@ -15,7 +15,7 @@ namespace CoursesPlatform.Services
         {
             get
             {
-                return date.AddDays(-OneDay);
+                return date.AddHours(-16);
             }
         }
 
@@ -40,5 +40,11 @@ namespace CoursesPlatform.Services
         public int SevenDays = 7;
 
         public int ThirtyDays = 30;
+
+        public string Day = "day";
+
+        public string Week = "week";
+
+        public string Month = "month";
     }
 }

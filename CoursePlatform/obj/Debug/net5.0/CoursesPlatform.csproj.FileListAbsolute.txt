@@ -134,3 +134,4 @@ D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseRem
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.RazorTargetAssemblyInfo.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.Views.pdb
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\UserInfoChangingEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseStartEmail.cshtml.g.cs

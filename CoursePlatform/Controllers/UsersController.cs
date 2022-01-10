@@ -42,7 +42,7 @@ namespace CoursesPlatform.Controllers
         }
 
         [Authorize(Roles = "Administrator")]
-        [HttpDelete("DeleteUser")]
+        [HttpPost("DeleteUser")]
         public async Task<IActionResult> DeleteUser(StringRequest request)
         {
             await userService.DeleteUserAsync(request, utils.GetIpAddressOfCurrentRequest(Request, HttpContext));

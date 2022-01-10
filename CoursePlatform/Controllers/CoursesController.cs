@@ -101,11 +101,6 @@ namespace CoursesPlatform.Controllers
         {
             var userId = userAccessor.GetCurrentUserId();
 
-            if (courseService.CheckIsCourseExistsById(request.CourseId))
-            {
-                throw new RestException(HttpStatusCode.NotFound, new { Message = "Course not found !" });
-            }
-
             courseService.UnsubscribeFromCourse(userId, request.CourseId);
 
             return Ok();

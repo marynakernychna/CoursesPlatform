@@ -7,6 +7,8 @@ namespace CoursesPlatform.Interfaces
 {
     public interface IEmailService
     {
+        Task SendCourseStartEmailAsync(string courseTitle, string startIn, string userEmail);
+
         Task SendConfirmationEmailAsync(User user);
 
         Task SendCourseRemovalNotificationEmailAsync(string courseTitle, User user);

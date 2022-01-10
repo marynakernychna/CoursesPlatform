@@ -101,7 +101,14 @@ namespace CoursesPlatform.Services.Queries
 
         public UserSubscriptions GetUserSubscription(string userId, int courseId)
         {
-            return appDbContext.UsersSubscriptions.SingleOrDefault(s => s.UserId == userId && s.CourseId == courseId);
+            var subscription = appDbContext.UsersSubscriptions.SingleOrDefault(s => s.UserId == userId && s.CourseId == courseId);
+
+            if (subscription == null)
+            {
+                throw new RestException(HttpStatusCode.NotFound, new { Message = "Subscription not found by id!" });
+            }
+
+            return subscription;
         }
 
         public void RemoveUserSubscription(UserSubscriptions userSubscription)

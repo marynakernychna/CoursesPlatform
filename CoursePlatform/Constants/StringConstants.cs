@@ -4,7 +4,7 @@
     {
         public const string JwtTokenSecretKey = "qUF6U9xyx943jk4TnY49nRV6WR2kRhhbwJZjRxG2Y77WnDLnPQ92aHT6jWjw9sfY3YcYsYjPHpSqZvuYd2yDK3z47n";
 
-        public const string SendGridKey = "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";
+        public const string SendGridKey = "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";
 
         public const string SendGridEmail = "kernychnamaryna@gmail.com";
 

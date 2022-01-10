@@ -23,6 +23,19 @@ namespace CoursesPlatform.Services
             this.userManager = userManager;
         }
 
+        public async Task SendCourseStartEmailAsync(string courseTitle, string startIn, string userEmail)
+        {
+            var message = await templateHelper.GetTemplateHtmlAsStringAsync<CourseStartEmail>(
+                "CourseStartEmail",
+                new CourseStartEmail
+                {
+                    CourseTitle = courseTitle,
+                    StartIn = startIn
+                });
+
+            await SendEmailAsync(userEmail, "Course start", message);
+        }
+
         public async Task SendConfirmationEmailAsync(User user)
         {
             var confirmationToken = userManager.GenerateEmailConfirmationTokenAsync(user).Result;

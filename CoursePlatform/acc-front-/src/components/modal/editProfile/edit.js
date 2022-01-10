@@ -25,7 +25,8 @@ class EditProfile extends React.Component {
                     offset: 8,
                     span: 16,
                 },
-            }
+            },
+            dateFormat: "YYYY-MM-DD"
         };
     }
 
@@ -134,7 +135,6 @@ class EditProfile extends React.Component {
                     this.setWarningAlert(err.response);
                 })
             .catch(err => {
-                console.log(err);
                 this.setWarningAlert();
             })
             .finally(() => {
@@ -158,6 +158,14 @@ class EditProfile extends React.Component {
         }
 
         setAlert(model);
+    }
+    
+    setDisabledDate = (current) => {
+        const now = moment();
+
+        return (
+            current > now.subtract(14, "years")
+        );
     }
 
     render() {

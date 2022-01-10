@@ -29,14 +29,12 @@ class Profile extends React.Component {
 
     static getDerivedStateFromProps = (nextProps, prevState) => {
 
-        console.log("props", nextProps, prevState);
-
         if (nextProps.profileInfo != undefined &&
             nextProps.profileInfo.name != undefined &&
             nextProps.profileInfo != prevState.profileInfo) {
 
             return {
-                profileInfo: nextProps.profileInfo,
+                profileInfo: nextProps.profileInfo
             }
         }
 
@@ -124,6 +122,8 @@ class Profile extends React.Component {
 
     render() {
 
+        const { isWithoutBirthday } = this.state;
+
         return (
 
             <div style={{
@@ -193,14 +193,17 @@ class Profile extends React.Component {
                     >
                         Change
                     </Button>
+
                     <br />
-                    <Button type="primary" icon={<FormOutlined />}
-                        className="edit-form-button"
-                        style={{ backgroundColor: "orange", "marginTop": "20px" }}
-                        onClick={() => this.openModal(this.state.profileInfo, modalsTypes.CHANGE_PASSWORD)}
-                    >
-                        Change password
-                    </Button>
+
+                    {!isWithoutBirthday ?
+                        <Button type="primary" icon={<FormOutlined />}
+                            className="edit-form-button"
+                            style={{ backgroundColor: "orange", "marginTop": "20px" }}
+                            onClick={() => this.openModal(this.state.profileInfo, modalsTypes.CHANGE_PASSWORD)}
+                        >
+                            Change password
+                        </Button> : <></>}
 
                 </Card>
 

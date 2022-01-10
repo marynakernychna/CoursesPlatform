@@ -39,7 +39,7 @@ namespace CoursesPlatform.Services
             {
 
                 var job1day = BackgroundJob.Schedule(
-                    () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a day. See you at training."),
+                    () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Day, userEmail),
                     daysConstants.OneDayDifference);
 
                 hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
@@ -51,7 +51,7 @@ namespace CoursesPlatform.Services
                 if (daysToCourse.Days >= daysConstants.SevenDays)
                 {
                     var job7days = BackgroundJob.Schedule(
-                        () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a week. See you at training."),
+                        () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Week, userEmail),
                         daysConstants.SevenDaysDifference);
 
                     hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
@@ -63,7 +63,7 @@ namespace CoursesPlatform.Services
                 if (daysToCourse.Days >= daysConstants.ThirtyDays)
                 {
                     var job30days = BackgroundJob.Schedule(
-                       () => emailService.SendEmailAsync(userEmail, "Start of the course", $"Good day.\n «{courseTitle}» course will start in a month. See you at training."),
+                       () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Month, userEmail),
                        daysConstants.ThirtyDaysDifference);
 
                     hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob

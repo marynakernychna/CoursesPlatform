@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal, Form, Button, Input } from 'antd';
 import usersService from '../../../services/students';
-import authService from '../../../services/auth';
 import { alertTypes } from '../../alert/types';
 
 const { TextArea } = Input;

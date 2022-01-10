@@ -4,55 +4,55 @@
 <html>
 <head>
 </head>
-<body style="padding: 20px; background-color: black; color: white">
-    <div>
-        <p style="font-size: large">Hi, <span style="font-style: italic; font-weight: 900">@Model.OldInfo.Name @Model.OldInfo.Surname</span> !</p>
-        <br />
+<body style="padding: 30px; background-color: black; color: white; text-align: center">
+    <h2 style="margin-bottom: 50px">Courses platform</h2>
 
-        <p>We inform you that the administrator has changed your profile data.</p>
+    <p style="font-size: large">Hi, <span style="font-style: italic; font-weight: 900">@Model.OldInfo.Name @Model.OldInfo.Surname</span> !</p>
+    <br />
 
-        @if (Model.IsNameChanged)
-        {
-            <p>
-                Your name 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.OldInfo.Name»
-                </span>
-                has been changed to 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.NewInfo.Name»
-                </span>.
-            </p>
-        }
-        @if (Model.IsSurnameChanged)
-        {
-            <p>
-                Your surname 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.OldInfo.Surname»
-                </span>
-                has been changed to 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.NewInfo.Surname»
-                </span>.
-            </p>
-        }
-        @if (Model.IsEmailChanged)
-        {
-            <p>
-                Your email address 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.OldInfo.Email»
-                </span>
-                has been changed to 
-                <span style="font-style: italic; font-weight: 600">
-                    «@Model.NewInfo.Email»
-                </span>.
-            </p>
-        }
+    <p>We inform you that your profile info has changed.</p>
 
-        <br />
-        <p>If we made a mistake or you have a question, please contact us.</p>
-    </div>
+    @if (Model.IsNameChanged)
+    {
+        <p>
+            Your name
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.OldInfo.Name»
+            </span>
+            has been changed to
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.NewInfo.Name»
+            </span>.
+        </p>
+    }
+    @if (Model.IsSurnameChanged)
+    {
+        <p>
+            Your surname
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.OldInfo.Surname»
+            </span>
+            has been changed to
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.NewInfo.Surname»
+            </span>.
+        </p>
+    }
+    @if (Model.IsEmailChanged)
+    {
+        <p>
+            Your email address
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.OldInfo.Email»
+            </span>
+            has been changed to
+            <span style="font-style: italic; font-weight: 600">
+                «@Model.NewInfo.Email»
+            </span>.
+        </p>
+    }
+
+    <br />
+    <p>Have a nice day!</p>
 </body>
 </html>
