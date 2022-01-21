@@ -1,10 +1,12 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
+using CoursesPlatform.Helpers;
 using CoursesPlatform.Interfaces;
 using CoursesPlatform.Models.Courses;
 using CoursesPlatform.Models.Razor;
 using CoursesPlatform.Models.Users;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
@@ -15,12 +17,15 @@ namespace CoursesPlatform.Services
     {
         private readonly ITemplateHelper templateHelper;
         private readonly UserManager<User> userManager;
+        private readonly AppSettings appSettings;
 
         public EmailService(ITemplateHelper templateHelper,
-                            UserManager<User> userManager)
+                            UserManager<User> userManager,
+                        IOptions<AppSettings> appSettings)
         {
             this.templateHelper = templateHelper;
             this.userManager = userManager;
+            this.appSettings = appSettings.Value;
         }
 
         public async Task SendCourseStartEmailAsync(string courseTitle, string startIn, string userEmail)
@@ -38,7 +43,7 @@ namespace CoursesPlatform.Services
 
         public async Task SendConfirmationEmailAsync(User user)
         {
-            var confirmationToken = userManager.GenerateEmailConfirmationTokenAsync(user).Result;
+            var confirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
             var message = await templateHelper.GetTemplateHtmlAsStringAsync<ConfirmationEmail>(
                 "ConfirmationEmail",
@@ -46,7 +51,7 @@ namespace CoursesPlatform.Services
                 {
                     Name = user.Name,
                     Surname = user.Surname,
-                    Link = StringConstants.CallbackUrl + "/" + confirmationToken + "/" + user.Email
+                    Link = StringConstants.EmailConfirmationCallbackUrl + "/" + confirmationToken + "/" + user.Email
                 });
 
             await SendEmailAsync(user.Email, "Confirm your account", message);
@@ -110,8 +115,8 @@ namespace CoursesPlatform.Services
 
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            var client = new SendGridClient(StringConstants.SendGridKey);
-            var from = new EmailAddress(StringConstants.SendGridEmail, StringConstants.SendGridSenderName);
+            var client = new SendGridClient(appSettings.SendGridKey);
+            var from = new EmailAddress(appSettings.SendGridEmail, appSettings.SendGridSenderName);
             var to = new EmailAddress(email, email);
             var plainTextContent = "";
             var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, message);

@@ -9,9 +9,5 @@ namespace CoursesPlatform.Interfaces.Queries
         string GetRefreshToken(User user);
 
         User GetUserByRefreshToken(string token);
-
-        void RevokeRefreshToken(User user, RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null);
-
-        void SaveRefreshToken(RefreshToken token, User user);
     }
 }

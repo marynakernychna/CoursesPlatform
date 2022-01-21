@@ -7,6 +7,9 @@ using CoursesPlatform.Models.Courses;
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Models.Users;
 using CoursesPlatform.Interfaces.Queries;
+using CoursesPlatform.ErrorMiddleware.Errors;
+using System.Net;
+using System.Collections.Generic;
 
 namespace CoursesPlatform.Services
 {
@@ -46,10 +49,10 @@ namespace CoursesPlatform.Services
 
             if (!string.IsNullOrWhiteSpace(request.SearchText))
             {
-                courses = coursesQueries.SearchTextInCourses(request.SearchText.ToLower(), courses);
+                courses = coursesQueries.GetCoursesByText(request.SearchText.ToLower(), courses);
             }
 
-            courses = coursesCommands.SortCoursesByDirection(request.FilterQuery, courses);
+            courses = SortCoursesByDirection(request.FilterQuery, courses);
 
             return new CoursesOnPageResponse
             {
@@ -58,11 +61,80 @@ namespace CoursesPlatform.Services
             };
         }
 
+        private IQueryable<Course> SortCoursesByDirection(FilterQuery request, IQueryable<Course> courses)
+        {
+            switch (request.SortDirection)
+            {
+                case FilterQuery.SortDirection_enum.ASC:
+                    {
+                        courses = SortCoursesByAsc(request, courses);
+                        break;
+                    }
+                case FilterQuery.SortDirection_enum.DESC:
+                    {
+                        courses = SortCoursesByDesc(request, courses);
+                        break;
+                    }
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
+                    }
+            }
+
+            return courses;
+        }
+
+        private IQueryable<Course> SortCoursesByAsc(FilterQuery request, IQueryable<Course> courses)
+        {
+            switch (request.SortBy)
+            {
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderBy(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderBy(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
+                    }
+            }
+
+            return courses;
+        }
+
+        private IQueryable<Course> SortCoursesByDesc(FilterQuery request, IQueryable<Course> courses)
+        {
+            switch (request.SortBy)
+            {
+                case FilterQuery.SortBy_enum.TITLE:
+                    {
+                        courses = courses.OrderByDescending(s => s.Title);
+                    }
+                    break;
+                case FilterQuery.SortBy_enum.DATE:
+                    {
+                        courses = courses.OrderByDescending(s => s.CreateDate);
+                    }
+                    break;
+                default:
+                    {
+                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
+                    }
+            }
+
+            return courses;
+        }
+
         public CoursesOnPageResponse SortAndGetCoursesOnStudentPage(FilterQuery request)
         {
             var courses = coursesQueries.GetAllCourses();
 
-            courses = coursesCommands.SortCoursesByDirection(request, courses);
+            courses = SortCoursesByDirection(request, courses);
 
             return new CoursesOnPageResponse
             {
@@ -77,11 +149,11 @@ namespace CoursesPlatform.Services
 
             var subscriptions = coursesQueries.GetUserSubscriptionsById(userId);
 
-            subscriptions = coursesCommands.SortCoursesByDirection(request, subscriptions);
+            subscriptions = SortCoursesByDirection(request, subscriptions);
 
-            var courses = coursesCommands.FormCoursesDTOsFromCourses(subscriptions);
+            var courses = FormCoursesDTOsFromCourses(subscriptions);
 
-            int totalCount = courses.Count();
+            var totalCount = courses.Count();
 
             return new SubscriptionsOnPage
             {
@@ -90,9 +162,27 @@ namespace CoursesPlatform.Services
             };
         }
 
+        private IQueryable<CourseDTO> FormCoursesDTOsFromCourses(IQueryable<Course> courses)
+        {
+            var coursesDTOs = new List<CourseDTO>();
+
+            foreach (var course in courses)
+            {
+                coursesDTOs.Add(new CourseDTO
+                {
+                    Id = course.Id,
+                    Title = course.Title,
+                    Description = course.Description,
+                    ImageUrl = course.ImageUrl
+                });
+            }
+
+            return coursesDTOs.AsQueryable();
+        }
+
         public void AddCourse(AddCourseRequest course)
         {
-            coursesQueries.AddCourse(new Course
+            coursesCommands.CreateCourse(new Course
             {
                 Title = course.Title,
                 Description = course.Description,
@@ -115,14 +205,14 @@ namespace CoursesPlatform.Services
 
         public async Task EditCourseAsync(CourseDTO newInfo, Course oldInfo)
         {
-            var courseSubscribers = coursesCommands.GetSubscribersByCourseId(newInfo.Id);
+            var courseSubscribers = GetSubscribersByCourseId(newInfo.Id);
 
             var oldTitle = oldInfo.Title;
             var oldDescription = oldInfo.Description;
 
             var course = coursesQueries.GetCourseById(newInfo.Id);
 
-            coursesQueries.UpdateCourse(course, newInfo);
+            coursesCommands.UpdateCourse(course, newInfo);
 
             if (courseSubscribers.Count > 0)
             {
@@ -130,9 +220,23 @@ namespace CoursesPlatform.Services
             }
         }
 
+        private List<User> GetSubscribersByCourseId(int courseId)
+        {
+            var subscriptions = coursesQueries.GetUserSubscriptionsQueryByCourseId(courseId);
+
+            var users = new List<User>();
+
+            foreach (var subscription in subscriptions)
+            {
+                users.Add(subscription.User);
+            }
+
+            return users;
+        }
+
         public async Task DeleteCourseByIdAsync(int courseId)
         {
-            var courseSubscribers = coursesCommands.GetSubscribersByCourseId(courseId);
+            var courseSubscribers = GetSubscribersByCourseId(courseId);
 
             var course = coursesQueries.GetCourseById(courseId);
 
@@ -141,7 +245,7 @@ namespace CoursesPlatform.Services
                 await bulkMailingService.SendCourseRemovalNotificationEmailsAsync(courseSubscribers, course.Title);
             }
 
-            coursesQueries.RemoveCourse(course);
+            coursesCommands.DeleteCourse(course);
         }
 
         public bool CheckIsSubscriptionExists(int courseId, string userId)
@@ -157,16 +261,14 @@ namespace CoursesPlatform.Services
             return new UserSubscriptions()
             {
                 CourseId = course.Id,
-                Course = course,
                 UserId = user.Id,
-                User = user,
                 StartDate = startDate
             };
         }
 
         public void AddNewSubscription(UserSubscriptions subscription)
         {
-            coursesQueries.AddSubscription(subscription);
+            coursesCommands.CreateSubscription(subscription);
 
             var userEmail = userQueries.GetUserEmailById(subscription.UserId);
 
@@ -186,7 +288,7 @@ namespace CoursesPlatform.Services
 
             hangfireService.DeleteCourseStartNotifications(subscription.Id);
 
-            coursesQueries.RemoveUserSubscription(subscription);
+            coursesCommands.DeleteUserSubscription(subscription);
         }
     }
 }

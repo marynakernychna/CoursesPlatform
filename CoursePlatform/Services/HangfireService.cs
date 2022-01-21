@@ -1,5 +1,7 @@
-﻿using CoursesPlatform.EntityFramework.Models;
+﻿using CoursesPlatform.EntityFramework;
+using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Interfaces;
+using CoursesPlatform.Interfaces.Commands;
 using CoursesPlatform.Interfaces.Queries;
 using Hangfire;
 using System;
@@ -10,12 +12,18 @@ namespace CoursesPlatform.Services
     {
         private readonly IEmailService emailService;
         private readonly IHangfireQueries hangfireQueries;
+        private readonly IHangfireCommands hangfireCommands;
+        private AppDbContext appDbContext;
 
         public HangfireService(IEmailService emailService,
-                               IHangfireQueries hangfireQueries)
+                               IHangfireQueries hangfireQueries,
+                               IHangfireCommands hangfireCommands,
+                               AppDbContext appDbContext)
         {
             this.emailService = emailService;
             this.hangfireQueries = hangfireQueries;
+            this.hangfireCommands = hangfireCommands;
+            this.appDbContext = appDbContext;
         }
 
         public void DeleteCourseStartNotifications(int subscriptionId)
@@ -42,7 +50,7 @@ namespace CoursesPlatform.Services
                     () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Day, userEmail),
                     daysConstants.OneDayDifference);
 
-                hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
+                hangfireCommands.CreateScheduleHangfireJob(new ScheduleHangfireJob
                 {
                     JobId = job1day,
                     UserSubscriptionId = subscription.Id
@@ -54,7 +62,7 @@ namespace CoursesPlatform.Services
                         () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Week, userEmail),
                         daysConstants.SevenDaysDifference);
 
-                    hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
+                    hangfireCommands.CreateScheduleHangfireJob(new ScheduleHangfireJob
                     {
                         JobId = job7days,
                         UserSubscriptionId = subscription.Id
@@ -66,7 +74,7 @@ namespace CoursesPlatform.Services
                        () => emailService.SendCourseStartEmailAsync(courseTitle, daysConstants.Month, userEmail),
                        daysConstants.ThirtyDaysDifference);
 
-                    hangfireQueries.AddScheduleHangfireJob(new ScheduleHangfireJob
+                    hangfireCommands.CreateScheduleHangfireJob(new ScheduleHangfireJob
                     {
                         JobId = job30days,
                         UserSubscriptionId = subscription.Id
@@ -74,7 +82,7 @@ namespace CoursesPlatform.Services
                 }
             }
 
-            hangfireQueries.SaveChanges();
+            appDbContext.SaveChanges();
         }
     }
 }

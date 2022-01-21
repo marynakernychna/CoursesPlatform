@@ -135,3 +135,6 @@ D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.Razor
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\CoursesPlatform.Views.pdb
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\UserInfoChangingEmail.cshtml.g.cs
 D:\Desktop\CoursesPlatform\CoursePlatform\obj\Debug\net5.0\Razor\Views\CourseStartEmail.cshtml.g.cs
+D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Hangfire.Dashboard.Authorization.dll
+D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\HangfireBasicAuthenticationFilter.dll
+D:\Desktop\CoursesPlatform\CoursePlatform\bin\Debug\net5.0\Owin.dll

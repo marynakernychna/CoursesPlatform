@@ -13,19 +13,28 @@ using System.Text;
 using CoursesPlatform.Interfaces;
 using System.Threading.Tasks;
 using CoursesPlatform.Interfaces.Queries;
+using CoursesPlatform.Helpers;
+using Microsoft.Extensions.Options;
+using CoursesPlatform.Interfaces.Commands;
 
 namespace CoursesPlatform.Utils
 {
     public class JwtUtils : IJwtUtils
     {
         private readonly UserManager<User> userManager;
+        private readonly IRefreshTokenCommands refreshTokenCommands;
         private readonly IRefreshTokenQueries refreshTokenQueries;
+        private readonly AppSettings appSettings;
 
         public JwtUtils(UserManager<User> userManager,
-                        IRefreshTokenQueries refreshTokenQueries)
+                        IRefreshTokenQueries refreshTokenQueries,
+                        IOptions<AppSettings> appSettings,
+                        IRefreshTokenCommands refreshTokenCommands)
         {
             this.userManager = userManager;
             this.refreshTokenQueries = refreshTokenQueries;
+            this.appSettings = appSettings.Value;
+            this.refreshTokenCommands = refreshTokenCommands;
         }
 
         public async Task<string> GenerateAccessTokenAsync(User user)
@@ -43,7 +52,7 @@ namespace CoursesPlatform.Utils
                 claims.Add(new Claim("roles", role));
             }
 
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(StringConstants.JwtTokenSecretKey));
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.JWTSecret));
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
             var jwt = new JwtSecurityToken(
                                             signingCredentials: signingCredentials,
@@ -81,7 +90,7 @@ namespace CoursesPlatform.Utils
                 throw new RestException(HttpStatusCode.BadRequest, new { Message = "Invalid token!" });
             }
 
-            refreshTokenQueries.RevokeRefreshToken(user, refreshToken, ipAddress, "Revoked without replacement");
+            refreshTokenCommands.RevokeRefreshToken(user, refreshToken, ipAddress, "Revoked without replacement");
         }
 
         public void RevokeAccess(User user, string ipAddress)
@@ -98,7 +107,7 @@ namespace CoursesPlatform.Utils
 
         public void SaveRefreshToken(RefreshToken token, User user)
         {
-            refreshTokenQueries.SaveRefreshToken(token, user);
+            refreshTokenCommands.CreateRefreshToken(token, user);
         }
 
         public bool CheckIsUserHasActiveRefreshToken(User user)

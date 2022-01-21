@@ -53,7 +53,7 @@ class RemoveStudent extends React.Component {
 
         usersService.removeUser(request)
             .then(() => {
-
+console.log("bla");
                 setAlert({
                     type: alertTypes.INFO,
                     message: 'You have successfully removed the student ! '
@@ -62,6 +62,7 @@ class RemoveStudent extends React.Component {
                 removeStudent(this.props.info);
             },
                 err => {
+                    console.log(err.response);
                     setAlert({
                         type: alertTypes.WARNING,
                         message: err.response.data.errors.message

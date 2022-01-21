@@ -36,7 +36,7 @@ class Registration extends React.Component {
                 finishLoading();
             },
                 err => {
-                    
+                    console.log(err.response);
                     this.setWarning(err.response.data.errors);
                 })
             .catch(() => {

@@ -1,18 +1,21 @@
 ﻿using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Models.Courses;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace CoursesPlatform.Interfaces.Commands
 {
     public interface ICoursesCommands
     {
-        IQueryable<Course> SortCoursesByDirection(FilterQuery request, IQueryable<Course> courses);
+        void CreateCourse(Course course);
 
-        IQueryable<CourseDTO> FormCoursesDTOsFromCourses(IQueryable<Course> courses);
+        void UpdateCourse(Course course, CourseDTO newInfo);
 
-        List<User> GetSubscribersByCourseId(int courseId);
+        void DeleteCourse(Course course);
 
-        List<CourseDTO> GetUserSubscriptions(string userId);
+        void CreateSubscription(UserSubscriptions subscription);
+
+        void DeleteUserSubscription(UserSubscriptions userSubscription);
+
+        void DeleteUserSubscriptions(IQueryable<UserSubscriptions> userSubscriptions);
     }
 }

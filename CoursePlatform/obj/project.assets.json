@@ -125,6 +125,38 @@
           }
         }
       },
+      "Hangfire.Dashboard.Authorization/3.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Hangfire.Core": "1.6.0",
+          "Owin": "1.0.0"
+        },
+        "compile": {
+          "lib/net45/Hangfire.Dashboard.Authorization.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Hangfire.Dashboard.Authorization.dll": {}
+        }
+      },
+      "Hangfire.Dashboard.Basic.Authentication/5.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Hangfire.AspNetCore": "1.7.19",
+          "Hangfire.Core": "1.7.19",
+          "Microsoft.AspNetCore.Http": "2.2.2",
+          "Microsoft.Extensions.Logging.Abstractions": "5.0.0",
+          "Microsoft.Extensions.Primitives": "5.0.0"
+        },
+        "compile": {
+          "lib/net5.0/HangfireBasicAuthenticationFilter.dll": {}
+        },
+        "runtime": {
+          "lib/net5.0/HangfireBasicAuthenticationFilter.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "Hangfire.SqlServer/1.7.27": {
         "type": "package",
         "dependencies": {
@@ -349,7 +381,7 @@
           "lib/netstandard2.0/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll": {}
         }
       },
-      "Microsoft.AspNetCore.Http/2.2.0": {
+      "Microsoft.AspNetCore.Http/2.2.2": {
         "type": "package",
         "dependencies": {
           "Microsoft.AspNetCore.Http.Abstractions": "2.2.0",
@@ -1224,6 +1256,15 @@
         },
         "runtime": {
           "lib/netstandard2.1/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {}
+        }
+      },
+      "Owin/1.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Owin.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Owin.dll": {}
         }
       },
       "PagedList/1.17.0": {
@@ -3315,6 +3356,31 @@
         "lib/netstandard2.0/zh/Hangfire.Core.resources.dll"
       ]
     },
+    "Hangfire.Dashboard.Authorization/3.0.0": {
+      "sha512": "H/ngumrBNsQ1U1BndcFKNL9O9D/OlKiUhBGC46Wds6Jzz0ScwRtuumPLE8mjf+3YxUvjRHHErQYflnY/o10qhA==",
+      "type": "package",
+      "path": "hangfire.dashboard.authorization/3.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "hangfire.dashboard.authorization.3.0.0.nupkg.sha512",
+        "hangfire.dashboard.authorization.nuspec",
+        "lib/net45/Hangfire.Dashboard.Authorization.XML",
+        "lib/net45/Hangfire.Dashboard.Authorization.dll"
+      ]
+    },
+    "Hangfire.Dashboard.Basic.Authentication/5.0.0": {
+      "sha512": "yB+3BnV4i15mDBxinpCzUAO15Ks6wme8tGotDb1cnxrcd1EDGtQ4MFkidXMVolAiMgc3uL+nYUu6kIMwl9u5Bg==",
+      "type": "package",
+      "path": "hangfire.dashboard.basic.authentication/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "hangfire.dashboard.basic.authentication.5.0.0.nupkg.sha512",
+        "hangfire.dashboard.basic.authentication.nuspec",
+        "lib/net5.0/HangfireBasicAuthenticationFilter.dll"
+      ]
+    },
     "Hangfire.SqlServer/1.7.27": {
       "sha512": "XwTZhrq0h34FuluhuQhKS7Axt1xymBwDv5vtCNLBrvRTMxlSY0Ek5AdtZgTNpwGgmIrVccO5/m+0v2EBDk0a8g==",
       "type": "package",
@@ -3581,16 +3647,16 @@
         "microsoft.aspnetcore.hosting.server.abstractions.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.Http/2.2.0": {
-      "sha512": "YogBSMotWPAS/X5967pZ+yyWPQkThxhmzAwyCHCSSldzYBkW5W5d6oPfBaPqQOnSHYTpSOSOkpZoAce0vwb6+A==",
+    "Microsoft.AspNetCore.Http/2.2.2": {
+      "sha512": "BAibpoItxI5puk7YJbIGj95arZueM8B8M5xT1fXBn3hb3L2G3ucrZcYXv1gXdaroLbntUs8qeV8iuBrpjQsrKw==",
       "type": "package",
-      "path": "microsoft.aspnetcore.http/2.2.0",
+      "path": "microsoft.aspnetcore.http/2.2.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "lib/netstandard2.0/Microsoft.AspNetCore.Http.dll",
         "lib/netstandard2.0/Microsoft.AspNetCore.Http.xml",
-        "microsoft.aspnetcore.http.2.2.0.nupkg.sha512",
+        "microsoft.aspnetcore.http.2.2.2.nupkg.sha512",
         "microsoft.aspnetcore.http.nuspec"
       ]
     },
@@ -4885,6 +4951,18 @@
         "npgsql.entityframeworkcore.postgresql.5.0.10.nupkg.sha512",
         "npgsql.entityframeworkcore.postgresql.nuspec",
         "postgresql.png"
+      ]
+    },
+    "Owin/1.0.0": {
+      "sha512": "OseTFniKmyp76mEzOBwIKGBRS5eMoYNkMKaMXOpxx9jv88+b6mh1rSaw43vjBOItNhaLFG3d0a20PfHyibH5sw==",
+      "type": "package",
+      "path": "owin/1.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Owin.dll",
+        "owin.1.0.0.nupkg.sha512",
+        "owin.nuspec"
       ]
     },
     "PagedList/1.17.0": {
@@ -9792,6 +9870,8 @@
       "FluentValidation.AspNetCore >= 10.3.4",
       "Hangfire >= 1.7.27",
       "Hangfire.AspNetCore >= 1.7.27",
+      "Hangfire.Dashboard.Authorization >= 3.0.0",
+      "Hangfire.Dashboard.Basic.Authentication >= 5.0.0",
       "Hangfire.SqlServer >= 1.7.27",
       "Microsoft.AspNet.Identity.Core >= 2.2.3",
       "Microsoft.AspNet.WebApi >= 5.2.7",
@@ -9870,6 +9950,14 @@
           "Hangfire.AspNetCore": {
             "target": "Package",
             "version": "[1.7.27, )"
+          },
+          "Hangfire.Dashboard.Authorization": {
+            "target": "Package",
+            "version": "[3.0.0, )"
+          },
+          "Hangfire.Dashboard.Basic.Authentication": {
+            "target": "Package",
+            "version": "[5.0.0, )"
           },
           "Hangfire.SqlServer": {
             "target": "Package",
@@ -9999,6 +10087,16 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "Package 'Hangfire.Dashboard.Authorization 3.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net5.0'. This package may not be fully compatible with your project.",
+      "libraryId": "Hangfire.Dashboard.Authorization",
+      "targetGraphs": [
+        "net5.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "Package 'Microsoft.AspNet.Identity.Core 2.2.3' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net5.0'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.Identity.Core",
       "targetGraphs": [
@@ -10021,6 +10119,16 @@
       "warningLevel": 1,
       "message": "Package 'Microsoft.AspNet.WebApi.WebHost 5.2.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net5.0'. This package may not be fully compatible with your project.",
       "libraryId": "Microsoft.AspNet.WebApi.WebHost",
+      "targetGraphs": [
+        "net5.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Owin 1.0.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework 'net5.0'. This package may not be fully compatible with your project.",
+      "libraryId": "Owin",
       "targetGraphs": [
         "net5.0"
       ]

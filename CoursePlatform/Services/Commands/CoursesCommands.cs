@@ -1,145 +1,58 @@
-﻿using CoursesPlatform.EntityFramework.Models;
-using CoursesPlatform.ErrorMiddleware.Errors;
+﻿using CoursesPlatform.EntityFramework;
+using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.Interfaces.Commands;
-using CoursesPlatform.Interfaces.Queries;
 using CoursesPlatform.Models.Courses;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 
 namespace CoursesPlatform.Services.Commands
 {
     public class CoursesCommands : ICoursesCommands
     {
-        private readonly ICoursesQueries coursesQueries;
-        private readonly IUserQueries userQueries;
+        private AppDbContext appDbContext;
 
-        public CoursesCommands(ICoursesQueries coursesQueries,
-                               IUserQueries userQueries)
+        public CoursesCommands(AppDbContext appDbContext)
         {
-            this.coursesQueries = coursesQueries;
-            this.userQueries = userQueries;
+            this.appDbContext = appDbContext;
         }
 
-        public IQueryable<Course> SortCoursesByDirection(FilterQuery request, IQueryable<Course> courses)
+        public void CreateCourse(Course course)
         {
-            switch (request.SortDirection)
-            {
-                case FilterQuery.SortDirection_enum.ASC:
-                    {
-                        courses = SortCoursesByAsc(request, courses);
-                        break;
-                    }
-                case FilterQuery.SortDirection_enum.DESC:
-                    {
-                        courses = SortCoursesByDesc(request, courses);
-                        break;
-                    }
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort direction> option is missing!" });
-                    }
-            }
+            appDbContext.Courses.Add(course);
 
-            return courses;
+            appDbContext.SaveChanges();
         }
 
-        private IQueryable<Course> SortCoursesByAsc(FilterQuery request, IQueryable<Course> courses)
+        public void UpdateCourse(Course course, CourseDTO newInfo)
         {
-            switch (request.SortBy)
-            {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        courses = courses.OrderBy(s => s.Title);
-                    }
-                    break;
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        courses = courses.OrderBy(s => s.CreateDate);
-                    }
-                    break;
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
-                    }
-            }
+            course.Title = newInfo.Title;
+            course.Description = newInfo.Description;
+            course.ImageUrl = newInfo.ImageUrl;
 
-            return courses;
+            appDbContext.SaveChanges();
         }
 
-        private IQueryable<Course> SortCoursesByDesc(FilterQuery request, IQueryable<Course> courses)
+        public void DeleteCourse(Course course)
         {
-            switch (request.SortBy)
-            {
-                case FilterQuery.SortBy_enum.TITLE:
-                    {
-                        courses = courses.OrderByDescending(s => s.Title);
-                    }
-                    break;
-                case FilterQuery.SortBy_enum.DATE:
-                    {
-                        courses = courses.OrderByDescending(s => s.CreateDate);
-                    }
-                    break;
-                default:
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, new { Message = "The specified <sort by> option is unsupported!" });
-                    }
-            }
-
-            return courses;
+            appDbContext.Courses.Remove(course);
+            appDbContext.SaveChanges();
         }
 
-        public IQueryable<CourseDTO> FormCoursesDTOsFromCourses(IQueryable<Course> courses)
+        public void CreateSubscription(UserSubscriptions subscription)
         {
-            var coursesDTOs = new List<CourseDTO>();
-
-            foreach (var course in courses)
-            {
-                coursesDTOs.Add(new CourseDTO
-                {
-                    Id = course.Id,
-                    Title = course.Title,
-                    Description = course.Description,
-                    ImageUrl = course.ImageUrl
-                });
-            }
-
-            return coursesDTOs.AsQueryable();
+            appDbContext.UsersSubscriptions.Add(subscription);
+            appDbContext.SaveChanges();
         }
 
-        public List<User> GetSubscribersByCourseId(int courseId)
+        public void DeleteUserSubscription(UserSubscriptions userSubscription)
         {
-            var subscriptions = coursesQueries.GetUserSubscriptionsQueryByCourseId(courseId);
-
-            var users = new List<User>();
-
-            foreach (var subscription in subscriptions)
-            {
-                users.Add(userQueries.GetUserById(subscription.UserId));
-            }
-
-            return users;
+            appDbContext.UsersSubscriptions.Remove(userSubscription);
+            appDbContext.SaveChanges();
         }
 
-        public List<CourseDTO> GetUserSubscriptions(string userId)
+        public void DeleteUserSubscriptions(IQueryable<UserSubscriptions> userSubscriptions)
         {
-            var subscriptions = coursesQueries.GetUserSubscriptionsById(userId);
-
-            var coursesDTOs = new List<CourseDTO>();
-
-            foreach (var course in subscriptions)
-            {
-                coursesDTOs.Add(new CourseDTO
-                {
-                    Id = course.Id,
-                    Title = course.Title,
-                    Description = course.Description,
-                    ImageUrl = course.ImageUrl
-                });
-            }
-
-            return coursesDTOs;
+            appDbContext.UsersSubscriptions.RemoveRange(userSubscriptions);
+            appDbContext.SaveChanges();
         }
     }
 }

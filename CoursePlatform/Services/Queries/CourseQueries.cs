@@ -2,7 +2,7 @@
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.Interfaces.Queries;
-using CoursesPlatform.Models.Courses;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,33 +11,37 @@ namespace CoursesPlatform.Services.Queries
 {
     public class CourseQueries : ICoursesQueries
     {
-        private AppDbContext appDbContext;
+        private readonly AppDbContext appDbContext;
 
         public CourseQueries(AppDbContext appDbContext)
         {
             this.appDbContext = appDbContext;
         }
 
-        public IQueryable<Course> SearchTextInCourses(string searchText, IQueryable<Course> courses)
-        {
-            return courses.Where(u => u.Title.ToLower().Contains(searchText) ||
-                                      u.Description.ToLower().Contains(searchText));
-        }
-
         public IQueryable<Course> GetAllCourses()
         {
-            return appDbContext.Courses.AsQueryable();
+            return appDbContext.Courses.AsQueryable().AsNoTracking();
+        }
+
+        public IQueryable<Course> GetCoursesByText(string searchText, IQueryable<Course> courses)
+        {
+            return courses.Where(u => u.Title.ToLower().Contains(searchText) ||
+                                      u.Description.ToLower().Contains(searchText))
+                          .AsNoTracking();
         }
 
         public IQueryable<Course> GetUserSubscriptionsById(string userId)
         {
-            var subscriptions = appDbContext.UsersSubscriptions.Where(s => s.UserId == userId).AsQueryable();
+            var subscriptions = appDbContext.UsersSubscriptions.Where(s => s.UserId == userId)
+                                                               .Include(s => s.Course)
+                                                               .AsQueryable()
+                                                               .AsNoTracking();
 
             var courses = new List<Course>();
 
             foreach (var subscription in subscriptions)
             {
-                courses.Add(GetCourseById(subscription.CourseId));
+                courses.Add(subscription.Course);
             }
 
             return courses.AsQueryable();
@@ -55,43 +59,16 @@ namespace CoursesPlatform.Services.Queries
             return course;
         }
 
-        public void AddCourse(Course course)
-        {
-            appDbContext.Courses.Add(course);
-
-            appDbContext.SaveChanges();
-        }
-
         public IQueryable<UserSubscriptions> GetUserSubscriptionsQueryByCourseId(int courseId)
         {
-            return appDbContext.UsersSubscriptions.Where(s => s.CourseId == courseId);
-        }
-
-        public void UpdateCourse(Course course, CourseDTO newInfo)
-        {
-            course.Title = newInfo.Title;
-            course.Description = newInfo.Description;
-            course.ImageUrl = newInfo.ImageUrl;
-
-            appDbContext.SaveChanges();
-        }
-
-        public void RemoveCourse(Course course)
-        {
-            appDbContext.Courses.Remove(course);
-            appDbContext.SaveChanges();
+            return appDbContext.UsersSubscriptions.Where(s => s.CourseId == courseId)
+                                                  .Include(s => s.User)
+                                                  .AsNoTracking();
         }
 
         public bool CheckIsSubscriptionExists(int courseId, string userId)
         {
-            return appDbContext.UsersSubscriptions
-                               .FirstOrDefault(s => s.CourseId == courseId && s.UserId == userId) != null;
-        }
-
-        public void AddSubscription(UserSubscriptions subscription)
-        {
-            appDbContext.UsersSubscriptions.Add(subscription);
-            appDbContext.SaveChanges();
+            return appDbContext.UsersSubscriptions.FirstOrDefault(s => s.CourseId == courseId && s.UserId == userId) != null;
         }
 
         public bool CheckIsCourseExistsById(int courseId)
@@ -111,21 +88,10 @@ namespace CoursesPlatform.Services.Queries
             return subscription;
         }
 
-        public void RemoveUserSubscription(UserSubscriptions userSubscription)
-        {
-            appDbContext.UsersSubscriptions.Remove(userSubscription);
-            appDbContext.SaveChanges();
-        }
-
         public IQueryable<UserSubscriptions> GetUserSubscriptions(string userId)
         {
-            return appDbContext.UsersSubscriptions.Where(s => s.UserId == userId);
-        }
-
-        public void RemoveUserSubscriptions(IQueryable<UserSubscriptions> userSubscriptions)
-        {
-            appDbContext.UsersSubscriptions.RemoveRange(userSubscriptions);
-            appDbContext.SaveChanges();
+            return appDbContext.UsersSubscriptions.Where(s => s.UserId == userId)
+                                                  .AsNoTracking();
         }
     }
 }

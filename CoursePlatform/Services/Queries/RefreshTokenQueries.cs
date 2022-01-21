@@ -2,7 +2,7 @@
 using CoursesPlatform.EntityFramework.Models;
 using CoursesPlatform.ErrorMiddleware.Errors;
 using CoursesPlatform.Interfaces.Queries;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
 
@@ -10,7 +10,7 @@ namespace CoursesPlatform.Services.Queries
 {
     public class RefreshTokenQueries : IRefreshTokenQueries
     {
-        private AppDbContext appDbContext;
+        private readonly AppDbContext appDbContext;
 
         public RefreshTokenQueries(AppDbContext appDbContext)
         {
@@ -44,25 +44,6 @@ namespace CoursesPlatform.Services.Queries
             }
 
             return user;
-        }
-
-        public void RevokeRefreshToken(User user, RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null)
-        {
-            token.Revoked = DateTime.UtcNow;
-            token.ReasonRevoked = reason;
-            token.ReplacedByToken = replacedByToken;
-            token.RevokedByIp = ipAddress;
-
-            appDbContext.Update(user);
-            appDbContext.SaveChanges();
-        }
-
-        public void SaveRefreshToken(RefreshToken token, User user)
-        {
-            user.RefreshTokens.Add(token);
-
-            appDbContext.Update(user);
-            appDbContext.SaveChanges();
         }
     }
 }

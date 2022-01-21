@@ -73,10 +73,11 @@ class Enroll extends React.Component {
                 });
             },
                 err => {
-
+console.log(err.response);
                     this.setWarning(err.response);
                 })
             .catch(err => {
+                console.log(err.response, err);
 
                 setAlert({
                     type: alertTypes.WARNING,
